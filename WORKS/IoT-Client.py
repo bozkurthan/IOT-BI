@@ -37,6 +37,11 @@ def on_message1(client, userdata, message):
                 print("NaN value found but pass that directly publish.")
         else:
             print("No NaN value, so directly publish.")
+            time_first, message_time = sub_message.split("[")
+            message_time, time_last = sub_message.split("]")
+            new_message = time_first + "[" + str(time.time() * 1000) + "]" + time_last
+            # print(new_message)
+            publish.single(client_pub_topic, sub_message, 1, False, pub_broker_address, pub_broker_port)
 
     elif "L1-C2" in sub_message:
         print("L1B")
@@ -60,7 +65,6 @@ def on_message1(client, userdata, message):
     else:
         print("Problem occured.")
 
-    publish.single(client_pub_topic, sub_message, 1, False, pub_broker_address, pub_broker_port)
 
 def client_sub_pub ():
     print("This client will be run for publishing and subscribing. \n ")

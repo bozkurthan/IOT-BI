@@ -12,6 +12,17 @@ print("connecting to broker")
 
 i = 0
 while i < 10:
-  publish.single("test","pub-C1-" + str(i),1,False,"localhost",1883)
+  publish_message = "( (L1-C1-0.Paket), (2019-01-20 16:56:58.792566), ( ( Data: (Light:33.141613,  Humidty:52.87946, Temperature:NaN ) ) )"
+  publish.single("test", publish_message, 1, False, "localhost", 1883)
   i += 1
   time.sleep(1)
+
+time.sleep(5)
+
+i = 0
+while i < 10:
+  publish_message = "(L1-C1-0.paket),(2019-01-20 16:56:58.792566),(33.141613,52.87946,36.59778)"
+  publish.single("test", publish_message, 1, False, "localhost", 1883)
+  i += 1
+  time.sleep(1)
+
