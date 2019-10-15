@@ -30,7 +30,7 @@ def data_process_to_pub(sub_message):
             raw_data_info, raw_data_sensors = sub_message.split("Data: (")
             before_time, message_time = raw_data_info.split("[")
             message_time, unused = message_time.split("]")
-            model_log_file = open("unprocessed_data_log_file.txt", "a")
+            model_log_file = open("transmission_time_hoop.txt", "a")
             model_log_file.write(str(time.time() * 1000 - float(message_time)) + "\n")
             model_log_file.close()
             packet_header = before_time.replace("( ", "").replace(" ", "")
@@ -46,6 +46,9 @@ def data_process_to_pub(sub_message):
                 data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
                 end_time = time.time() * 1000 - start_time
+                log_file = open("model_proc_time.txt", "a")
+                log_file.write(str(end_time) + "\n")
+                log_file.close()
                 print("Doforluxx")
             elif (humidity_data == "NaN"):
                 start_time = time.time() * 1000
@@ -54,19 +57,27 @@ def data_process_to_pub(sub_message):
                 data_message2 = "22.22"  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
                 end_time = time.time() * 1000 - start_time
+                log_file = open("model_proc_time.txt", "a")
+                log_file.write(str(end_time) + "\n")
+                log_file.close()
                 print("Doforhumd")
             elif (temperature_data == "NaN"):
                 # Burada model işleyecek
+                start_time = time.time() * 1000
                 data_message1 = light_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = "33.33"  # Bu mesaj model sonunda elde edilen değerdir
+                end_time = time.time() * 1000 - start_time
+                log_file = open("model_proc_time.txt", "a")
+                log_file.write(str(end_time) + "\n")
+                log_file.close()
                 print("Dofortemp")
             else:
                 print("Problem occured")
 
             new_message = packet_header + "[" + str(
                 time.time() * 1000) + "],(" + data_message1 + "," + data_message2 + "," + data_message3 + ")"
-            print(new_message)
+            publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
         else:
             # These code snippet provides that it handles time by incoming messages and saves them to file.
             # After this operation, it prepares new message.
@@ -98,32 +109,6 @@ def callback_on_message(client, userdata, message):
     sub_message = str(message.payload.decode("utf-8"))
     data_process_to_pub(sub_message)
 
-    # if "L1-C1" in sub_message:
-    #     print("L1-C1")
-    #     data_process_to_pub(sub_message)
-    #
-    #
-    # elif "L1-C2" in sub_message:
-    #     print("L1-C2")
-    #     data_process_to_pub(sub_message)
-    #
-    # elif "L1-C3" in sub_message:
-    #     print("L1C")
-    #     data_process_to_pub(sub_message)
-    #
-    # elif "L2-C1" in sub_message:
-    #     print("L2A")
-    #     # dataH2(deger1, deger2, zamanbilgi)
-    #
-    # elif "L2-C2" in sub_message:
-    #     print("L2B")
-    #     # dataT2(deger1, deger2, zamanbilgi)
-    #
-    # elif "L2-C3" in sub_message:
-    #     print("L2C")
-    #     # dataL2(deger1, deger2, zamanbilgi)
-    # else:
-    #     print("Problem occured.")
 
 
 def client_sub_pub ():
@@ -196,6 +181,3 @@ if(_client_will_sub):
     client_sub_pub()
 else:
     client_pub()
-
-print("allover")
-
