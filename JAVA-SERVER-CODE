@@ -1,0 +1,868 @@
+/*******************************************************************************
+ * Copyright (c) 2009, 2014 IBM Corp.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Eclipse Distribution License v1.0 which accompany this distribution. 
+ *
+ * The Eclipse Public License is available at 
+ *    http://www.eclipse.org/legal/epl-v10.html
+ * and the Eclipse Distribution License is available at 
+ *   http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * Contributors:
+ *    Dave Locke - initial API and implementation and/or initial documentation
+ */
+
+package org.eclipse.paho.sample.mqttv3app;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
+
+/**
+ * A sample application that demonstrates how to use the Paho MQTT v3.1 Client
+ * blocking API.
+ *
+ * It can be run from the command line in one of two modes: - as a publisher,
+ * sending a single message to a topic on the server - as a subscriber,
+ * listening for messages from the server
+ *
+ * There are three versions of the sample that implement the same features but
+ * do so using using different programming styles:
+ * <ol>
+ * <li>Sample (this one) which uses the API which blocks until the operation
+ * completes</li>
+ * <li>SampleAsyncWait shows how to use the asynchronous API with waiters that
+ * block until an action completes</li>
+ * <li>SampleAsyncCallBack shows how to use the asynchronous API where events
+ * are used to notify the application when an action completes
+ * <li>
+ * </ol>
+ *
+ * If the application is run with the -h parameter then info is displayed that
+ * describes all of the options / parameters.
+ */
+public class Sample implements MqttCallback {
+
+	/**
+	 * The main entry point of the sample.
+	 *
+	 * This method handles parsing of the arguments specified on the command-line
+	 * before performing the specified action.
+	 */
+	public static void main(String[] args) {
+
+		// Default settings:
+		boolean quietMode = false;
+		String action = "subscribe";
+		String topic = "";
+		String message = "helloo";
+		int qos = 2;
+		// degisecek_deger
+		String broker = "127.0.0.1";//Topic Address (BURASI DEĞİŞECEK)
+		// "m15.cloudmqtt.com";//"192.168.43.55";//"192.168.1.35";//"192.168.43.66";
+		int port = 1883;// 
+		String clientId = null;
+		String subTopic = "Sample/#";
+		String pubTopic = "Sample/Java/v3";
+		boolean cleanSession = true; // Non durable subscriptions
+		boolean ssl = false;
+		String password = null;
+		String userName = null;
+
+		// Validate the provided arguments
+		if (!action.equals("publish") && !action.equals("subscribe")) {
+			System.out.println("Invalid action: " + action);
+			return;
+		}
+		if (qos < 0 || qos > 2) {
+			System.out.println("Invalid QoS: " + qos);
+			return;
+		}
+		if (topic.equals("")) {
+			// Set the default topic according to the specified action
+			if (action.equals("publish")) {
+				topic = pubTopic;
+			} else {
+				topic = subTopic;
+			}
+		}
+
+		String protocol = "tcp://";
+
+		if (ssl) {
+			protocol = "ssl://";
+		}
+
+		String url = protocol + broker + ":" + port;
+
+		if (clientId == null || clientId.equals("")) {
+			clientId = "SampleJavaV3_" + action;
+		}
+
+		// With a valid set of arguments, the real work of
+		// driving the client API can begin
+		try {
+			// Create an instance of this class
+			Sample sampleClient = new Sample(url, clientId, cleanSession, quietMode, userName, password);
+
+			// Perform the requested action
+			if (action.equals("publish")) {
+				sampleClient.publish(topic, qos, message.getBytes());
+			} else if (action.equals("subscribe")) {
+				sampleClient.subscribe(topic, qos);
+			}
+		} catch (MqttException me) {
+			// Display full details of any exception that occurs
+			System.out.println("reason " + me.getReasonCode());
+			System.out.println("msg " + me.getMessage());
+			System.out.println("loc " + me.getLocalizedMessage());
+			System.out.println("cause " + me.getCause());
+			System.out.println("excep " + me);
+			me.printStackTrace();
+		}
+	}
+
+	// Private instance variables
+	private MqttClient client;
+	private String brokerUrl;
+	private boolean quietMode;
+	private MqttConnectOptions conOpt;
+	private boolean clean;
+	private String password;
+	private String userName;
+
+	public Sample(String brokerUrl, String clientId, boolean cleanSession, boolean quietMode, String userName,
+			String password) throws MqttException {
+		this.brokerUrl = brokerUrl;
+		this.quietMode = quietMode;
+		this.clean = cleanSession;
+		this.password = password;
+		this.userName = userName;
+		// This sample stores in a temporary directory... where messages temporarily
+		// stored until the message has been delivered to the server.
+		// ..a real application ought to store them somewhere
+		// where they are not likely to get deleted or tampered with
+		String tmpDir = System.getProperty("java.io.tmpdir");
+		MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);
+
+		try {
+			// Construct the connection options object that contains connection parameters
+			// such as cleanSession and LWT
+			conOpt = new MqttConnectOptions();
+			conOpt.setCleanSession(clean);
+			if (password != null) {
+				conOpt.setPassword(this.password.toCharArray());
+			}
+			if (userName != null) {
+				conOpt.setUserName(this.userName);
+			}
+
+			// Construct an MQTT blocking mode client
+			client = new MqttClient(this.brokerUrl, clientId, dataStore);
+
+			// Set this wrapper as the callback handler
+			client.setCallback(this);
+
+		} catch (MqttException e) {
+			e.printStackTrace();
+			log("Unable to set up client: " + e.toString());
+			System.exit(1);
+		}
+	}
+
+	public void publish(String topicName, int qos, byte[] payload) throws MqttException {
+
+		client.disconnect();
+		log("Disconnected");
+	}
+
+	public void subscribe(String topicName, int qos) throws MqttException {
+
+		// Connect to the MQTT server
+		client.connect(conOpt);
+		log("Connected to " + brokerUrl + " with client ID " + client.getClientId());
+
+		// Subscribe to the requested topic
+		// The QoS specified is the maximum level that messages will be sent to the
+		// client at.
+		// For instance if QoS 1 is specified, any messages originally published at QoS
+		// 2 will
+		// be downgraded to 1 when delivering to the client but messages published at 1
+		// and 0
+		// will be received at the same level they were published at.
+		log("Subscribing to topic \"" + topicName + "\" qos " + 0);
+		log("Multisubs enabled");
+		client.subscribe("test4646", 0);// Subscribe topic (BURASI DEĞİŞECEK)
+
+		// Continue waiting for messages until the Enter is pressed
+		log("Press <Enter> to exit");
+		try {
+			System.in.read();
+		} catch (IOException e) {
+			// If we can't read we'll just exit
+		}
+
+		// Disconnect the client from the server
+		client.disconnect();
+		log("Disconnected");
+	}
+
+	private void log(String message) {
+		if (!quietMode) {
+			System.out.println(message);
+		}
+	}
+
+	/****************************************************************/
+	/* Methods to implement the MqttCallback interface */
+	/****************************************************************/
+
+	public void connectionLost(Throwable cause) {
+		// Called when the connection to the server has been lost.
+		// An application may choose to implement reconnection
+		// logic at this point. This sample simply exits.
+		log("Connection to " + brokerUrl + " lost!" + cause);
+		System.exit(1);
+	}
+
+	public void deliveryComplete(IMqttDeliveryToken token) {
+
+	}
+
+	long toplam_L1_C1 = 0;
+	long toplam_L1_C2 = 0;
+	long toplam_L1_C3 = 0;
+	long bytesize_toplam_L1_C1 = 0;
+	long bytesize_toplam_L1_C2 = 0;
+	long bytesize_toplam_L1_C3 = 0;
+
+	long toplam_L2_C1 = 0;
+	long toplam_L2_C2 = 0;
+	long toplam_L2_C3 = 0;
+	long bytesize_toplam_L2_C1 = 0;
+	long bytesize_toplam_L2_C2 = 0;
+	long bytesize_toplam_L2_C3 = 0;
+
+	long counter_L1_C1 = 0;
+	long counter_L1_C2 = 0;
+	long counter_L1_C3 = 0;
+	long counter_L2_C1 = 0;
+	long counter_L2_C2 = 0;
+	long counter_L2_C3 = 0;
+
+	int paketcounter_L1_C1 = 1;
+	int paketcounter_L1_C2 = 1;
+	int paketcounter_L1_C3 = 1;
+	int paketcounter_L2_C1 = 1;
+	int paketcounter_L2_C2 = 1;
+	int paketcounter_L2_C3 = 1;
+
+	long genelcounter_L1_C1 = 0;
+	long genelcounter_L1_C2 = 0;
+	long genelcounter_L1_C3 = 0;
+	long genelcounter_L2_C1 = 0;
+	long genelcounter_L2_C2 = 0;
+	long genelcounter_L2_C3 = 0;
+
+	float rc_message_toplam_isletme_L1_C1 = 0;
+	float rc_message_toplam_isletme_L1_C2 = 0;
+	float rc_message_toplam_isletme_L1_C3 = 0;
+	float rc_message_toplam_isletme_L2_C1 = 0;
+	float rc_message_toplam_isletme_L2_C2 = 0;
+	float rc_message_toplam_isletme_L2_C3 = 0;
+
+	long[] L1_C1_toplam = new long[28];
+	long[] L1_C2_toplam = new long[28];
+	long[] L1_C3_toplam = new long[28];
+	long[] L2_C1_toplam = new long[28];
+	long[] L2_C2_toplam = new long[28];
+	long[] L2_C3_toplam = new long[28];
+
+	long[] L1_C1_toplam_size = new long[28];
+	long[] L1_C2_toplam_size = new long[28];
+	long[] L1_C3_toplam_size = new long[28];
+	long[] L2_C1_toplam_size = new long[28];
+	long[] L2_C2_toplam_size = new long[28];
+	long[] L2_C3_toplam_size = new long[28];
+
+	int messagecounter = 0;
+
+	int test_paket_sayisi = 100; // TEST EDILECEK PAKET SAYISI (BURASI DEĞİŞECEK) BURAK HAN
+
+	void modelli_olcum_suresi(String rc_message, long oldertime)
+
+	{
+		// end_process if'i
+		if (rc_message == "END_PROCESS-L1-C1") {
+			System.out.println("Client-L1-C1 Sayilan paket sayisi:" + oldertime);
+
+			// ########################################################//
+			// L1_C1_son_durum
+			System.out.println("GenelCounter:" + genelcounter_L1_C1);
+			System.out.println("***GENEL*** Client-L1-C1 transmission Toplam");
+
+			for (int i = 0; i < L1_C1_toplam.length; i++) {
+				System.out.println(L1_C1_toplam[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("***GENEL*** L1-C1_Size Toplam");
+			for (int i = 0; i < L1_C1_toplam_size.length; i++) {
+				System.out.println(L1_C1_toplam_size[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("///////////////////////");
+			
+		} else if (rc_message == "END_PROCESS-L1-C2") {
+			System.out.println("Client-L1-C2 Sayilan paket sayisi:" + oldertime);
+
+			// ########################################################//
+			// L1_C2_son_durum
+			System.out.println("GenelCounter:" + genelcounter_L1_C2);
+			System.out.println("***GENEL*** Client-L1-C2 transmission Toplam");
+
+			for (int i = 0; i < L1_C2_toplam.length; i++) {
+				System.out.println(L1_C2_toplam[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("***GENEL*** L1-C2_Size Toplam");
+			for (int i = 0; i < L1_C2_toplam_size.length; i++) {
+				System.out.println(L1_C2_toplam_size[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("///////////////////////");
+		}else if (rc_message == "END_PROCESS-L1-C3") {
+			System.out.println("Client-L1-C3 Sayilan paket sayisi:" + oldertime);
+
+			// ########################################################//
+			// L1_C_son_durum
+			System.out.println("GenelCounter:" + genelcounter_L1_C3);
+			System.out.println("***GENEL*** Client-L1_C3 transmission Toplam");
+
+			for (int i = 0; i < L1_C3_toplam.length; i++) {
+				System.out.println(L1_C3_toplam[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("***GENEL*** L1-C3_Size Toplam");
+			for (int i = 0; i < L1_C3_toplam_size.length; i++) {
+				System.out.println(L1_C3_toplam_size[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("///////////////////////");
+		}
+		else if (rc_message == "END_PROCESS-L2-C1") {
+			System.out.println("Client-L2-C1 Sayilan paket sayisi:" + oldertime);
+
+			// ########################################################//
+			// L2_C1_son_durum
+			System.out.println("GenelCounter:" + genelcounter_L2_C1);
+			System.out.println("***GENEL*** Client-L2-C1 transmission Toplam");
+
+			for (int i = 0; i < L2_C1_toplam.length; i++) {
+				System.out.println(L2_C1_toplam[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("***GENEL*** L2-C1_Size Toplam");
+			for (int i = 0; i < L2_C1_toplam_size.length; i++) {
+				System.out.println(L2_C1_toplam_size[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("///////////////////////");
+		} else if (rc_message == "END_PROCESS-L2-C2") {
+			System.out.println("Client-L2-C2 Sayilan paket sayisi:" + oldertime);
+
+			// ########################################################//
+			// L2_C2_son_durum
+			System.out.println("GenelCounter:" + genelcounter_L2_C2);
+			System.out.println("***GENEL*** Client-L2-C2 transmission Toplam");
+
+			for (int i = 0; i < L2_C2_toplam.length; i++) {
+				System.out.println(L2_C2_toplam[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("***GENEL*** L2-C2_Size Toplam");
+			for (int i = 0; i < L2_C2_toplam_size.length; i++) {
+				System.out.println(L2_C2_toplam_size[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("///////////////////////");
+		}
+
+		else if (rc_message == "END_PROCESS-L2-C3") {
+			System.out.println("Client-L2-C3 Sayilan paket sayisi:" + oldertime);
+
+			// ########################################################//
+			// L2_C_son_durum
+			System.out.println("GenelCounter:" + genelcounter_L2_C3);
+			System.out.println("***GENEL*** Client-L2_C transmission Toplam");
+
+			for (int i = 0; i < L2_C3_toplam.length; i++) {
+				System.out.println(L2_C3_toplam[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("***GENEL*** L2-C3_Size Toplam");
+			for (int i = 0; i < L2_C3_toplam_size.length; i++) {
+				System.out.println(L2_C3_toplam_size[i]);
+			}
+
+			System.out.println("///////////////////////");
+			System.out.println("///////////////////////");
+		}
+
+		// ########################################################//
+		// endprocess else'i
+		else {
+//			System.out.println("PCDEKI zaman:" + oldertime);
+//			System.out.println("Alinan byte:" + rc_message.getBytes().length);
+
+			// yeni zaman
+			int left = rc_message.indexOf("[");
+			int right = rc_message.indexOf("]");
+			String message_incoming_time = rc_message.substring(left+1, right);
+//			System.out.println(message_incoming_time);
+			long _message_incoming_time = Long.parseLong(message_incoming_time);
+
+			
+			
+			long fark = oldertime - _message_incoming_time;
+			
+		    
+
+			if (rc_message.contains("L1-C1")) {
+				counter_L1_C1++;
+				genelcounter_L1_C1++;
+				toplam_L1_C1 = toplam_L1_C1 + fark;
+				bytesize_toplam_L1_C1 = bytesize_toplam_L1_C1 + rc_message.getBytes().length;
+
+			} else if (rc_message.contains("L1-C2")) {
+				counter_L1_C2++;
+				genelcounter_L1_C2++;
+				toplam_L1_C2 = toplam_L1_C2 + fark;
+				bytesize_toplam_L1_C2 = bytesize_toplam_L1_C2 + rc_message.getBytes().length;
+
+			} else if (rc_message.contains("L1-C3")) {
+				counter_L1_C3++;
+				genelcounter_L1_C3++;
+				toplam_L1_C3 = toplam_L1_C3 + fark;
+				bytesize_toplam_L1_C3 = bytesize_toplam_L1_C3 + rc_message.getBytes().length;
+
+			} else if (rc_message.contains("L2-C1")) {
+				counter_L2_C1++;
+				genelcounter_L2_C1++;
+				toplam_L2_C1 = toplam_L2_C1 + fark;
+				bytesize_toplam_L2_C1 = bytesize_toplam_L2_C1 + rc_message.getBytes().length;
+
+			} else if (rc_message.contains("L2-C2")) {
+				counter_L2_C2++;
+				genelcounter_L2_C2++;
+				toplam_L2_C2 = toplam_L2_C2 + fark;
+				bytesize_toplam_L2_C2 = bytesize_toplam_L2_C2 + rc_message.getBytes().length;
+
+			} else if (rc_message.contains("L2-C3")) {
+				counter_L2_C3++;
+				genelcounter_L2_C3++;
+				toplam_L2_C3 = toplam_L2_C3 + fark;
+				bytesize_toplam_L2_C3 = bytesize_toplam_L2_C3 + rc_message.getBytes().length;
+
+			} else {
+				System.out.println("Alinan mesaj icinde LX_X'den farkli bir format bulundu.");
+			}
+
+			if (counter_L1_C1 == test_paket_sayisi)
+			{
+				L1_C1_toplam[paketcounter_L1_C1 - 1] = toplam_L1_C1;
+				L1_C1_toplam_size[paketcounter_L1_C1 - 1] = bytesize_toplam_L1_C1;
+				counter_L1_C1 = 0;
+				toplam_L1_C1 = 0;
+				bytesize_toplam_L1_C1 = 0;
+				paketcounter_L1_C1++;
+			}
+
+			if (counter_L1_C2 == test_paket_sayisi) {
+				L1_C2_toplam[paketcounter_L1_C2 - 1] = toplam_L1_C2;
+				L1_C2_toplam_size[paketcounter_L1_C2 - 1] = bytesize_toplam_L1_C2;
+				counter_L1_C2 = 0;
+				toplam_L1_C2 = 0;
+				bytesize_toplam_L1_C2 = 0;
+				paketcounter_L1_C2++;
+			} 
+
+			if (counter_L1_C3 == test_paket_sayisi) {
+
+				L1_C3_toplam[paketcounter_L1_C3 - 1] = toplam_L1_C3;
+				L1_C3_toplam_size[paketcounter_L1_C3 - 1] = bytesize_toplam_L1_C3;
+				counter_L1_C3 = 0;
+				toplam_L1_C3 = 0;
+				bytesize_toplam_L1_C3 = 0;
+				paketcounter_L1_C3++;
+			} 
+			
+			if (counter_L2_C1 == test_paket_sayisi)
+			{
+				L2_C1_toplam[paketcounter_L2_C1 - 1] = toplam_L2_C1;
+				L2_C1_toplam_size[paketcounter_L2_C1 - 1] = bytesize_toplam_L2_C1;
+				counter_L2_C1 = 0;
+				toplam_L2_C1 = 0;
+				bytesize_toplam_L2_C1 = 0;
+				paketcounter_L2_C1++;
+			}
+
+			if (counter_L2_C2 == test_paket_sayisi) {
+				L2_C2_toplam[paketcounter_L2_C2 - 1] = toplam_L2_C2;
+				L2_C2_toplam_size[paketcounter_L2_C2 - 1] = bytesize_toplam_L2_C2;
+				counter_L2_C2 = 0;
+				toplam_L2_C2 = 0;
+				bytesize_toplam_L2_C2 = 0;
+				paketcounter_L2_C2++;
+			} 
+
+			if (counter_L2_C3 == test_paket_sayisi) {
+
+				L2_C3_toplam[paketcounter_L2_C3 - 1] = toplam_L2_C3;
+				L2_C3_toplam_size[paketcounter_L2_C3 - 1] = bytesize_toplam_L2_C3;
+				counter_L2_C3 = 0;
+				toplam_L2_C3 = 0;
+				bytesize_toplam_L2_C3 = 0;
+				paketcounter_L2_C3++;
+			}
+		} 
+	}// genel_else
+
+	// region VARIABLES
+	ArrayList<String> null_variable_list_L1_C1 = new ArrayList<String>();
+	ArrayList<String> null_variable_list_L1_C2 = new ArrayList<String>();
+	ArrayList<String> null_variable_list_L1_C3 = new ArrayList<String>();
+	
+	ArrayList<String> null_variable_list_L2_C1 = new ArrayList<String>();
+	ArrayList<String> null_variable_list_L2_C2 = new ArrayList<String>();
+	ArrayList<String> null_variable_list_L2_C3 = new ArrayList<String>();
+
+	String requiredString_L1_C1;
+	int packet_number_L1_C1;
+	String requiredString_L1_C2;
+	int packet_number_L1_C2;
+	String requiredString_L1_C3;
+	int packet_number_L1_C3;
+	
+	String requiredString_L2_C1;
+	int packet_number_L2_C1;
+	String requiredString_L2_C2;
+	int packet_number_L2_C2;
+	String requiredString_L2_C3;
+	int packet_number_L2_C3;
+
+	boolean end_process_check_L1_C1 = false;
+	boolean end_process_check_L1_C2 = false;
+	boolean end_process_check_L1_C3 = false;
+	boolean end_process_check_L2_C1 = false;
+	boolean end_process_check_L2_C2 = false;
+	boolean end_process_check_L2_C3 = false;
+
+	String[] wordComeList_L1_C1 = new String[27000];
+	long[] timeStampList_L1_C1 = new long[27000];
+	String[] wordComeList_L1_C2 = new String[27000];
+	long[] timeStampList_L1_C2 = new long[27000];
+	String[] wordComeList_L1_C3 = new String[27000];
+	long[] timeStampList_L1_C3 = new long[27000];
+
+	String[] wordComeList_L2_C1 = new String[27000];
+	long[] timeStampList_L2_C1 = new long[27000];
+	String[] wordComeList_L2_C2 = new String[27000];
+	long[] timeStampList_L2_C2 = new long[27000];
+	String[] wordComeList_L2_C3 = new String[27000];
+	long[] timeStampList_L2_C3 = new long[27000];
+	// endregion
+
+	public void messageArrived(String topic, MqttMessage message)
+			throws MqttException, ParseException, InterruptedException {
+		// Timestamp at
+		long nowtime = Instant.now().toEpochMilli();
+		// Gelen mesaj
+		String rc_message = new String(message.getPayload());
+		//System.out.println("ComeMessage:\t" + nowtime);
+		
+
+		if (rc_message.contains("SL1-C1-SON")) {
+			end_process_check_L1_C1 = true;
+			System.out.println("SL1-C1-SON MESAJ ALINDI");
+			wordComeList_L1_C1[packet_number_L1_C1 + 1] = rc_message;
+			timeStampList_L1_C1[packet_number_L1_C1 + 1] = packet_number_L1_C1 + 1;
+		} else if (rc_message.contains("SL1-C2-SON")) {
+			end_process_check_L1_C2 = true;
+			System.out.println("SL1-C2-SON MESAJ ALINDI");
+			wordComeList_L1_C2[packet_number_L1_C2 + 1] = rc_message;
+			timeStampList_L1_C2[packet_number_L1_C2 + 1] = packet_number_L1_C2 + 1;
+		} else if (rc_message.contains("L1-C3-SON")) {
+			end_process_check_L1_C3 = true;
+			System.out.println("SL1-C3-SON MESAJ ALINDI");
+			wordComeList_L1_C3[packet_number_L1_C3 + 1] = rc_message;
+			timeStampList_L1_C3[packet_number_L1_C3 + 1] = packet_number_L1_C3 + 1;
+		} else if (rc_message.contains("SL2-C1-SON")) {
+			end_process_check_L2_C1 = true;
+			System.out.println("SL2-C1-SON MESAJ ALINDI");
+			wordComeList_L2_C1[packet_number_L2_C1 + 1] = rc_message;
+			timeStampList_L2_C1[packet_number_L2_C1 + 1] = packet_number_L2_C1 + 1;
+		} else if (rc_message.contains("SL2-C2-SON")) {
+			end_process_check_L2_C2 = true;
+			System.out.println("SL2-C2-SON MESAJ ALINDI");
+			wordComeList_L2_C2[packet_number_L2_C2 + 1] = rc_message;
+			timeStampList_L2_C2[packet_number_L2_C2 + 1] = (packet_number_L2_C2 + 1);
+		} else if (rc_message.contains("SL2-C3-SON")) {
+			end_process_check_L2_C3 = true;
+			System.out.println("SL2-C3-SON MESAJ ALINDI");
+			wordComeList_L2_C3[packet_number_L2_C3 + 1] = rc_message;
+			timeStampList_L2_C3[packet_number_L2_C3 + 1] = (packet_number_L1_C3 + 1);
+		}
+
+		else {
+			if (rc_message.contains("L1-C1")) {
+				requiredString_L1_C1 = rc_message.substring(rc_message.indexOf("(L1-C1-") + 7, rc_message.indexOf(".paket)"));
+				packet_number_L1_C1 = Integer.parseInt(requiredString_L1_C1);
+				wordComeList_L1_C1[packet_number_L1_C1] = rc_message;
+				timeStampList_L1_C1[packet_number_L1_C1] = nowtime;
+			} else if (rc_message.contains("L1-C2")) {
+				requiredString_L1_C2 = rc_message.substring(rc_message.indexOf("(L1-C2-") + 7, rc_message.indexOf(".paket)"));
+				packet_number_L1_C2 = Integer.parseInt(requiredString_L1_C2);
+				wordComeList_L1_C2[packet_number_L1_C2] = rc_message;
+				timeStampList_L1_C2[packet_number_L1_C2] = nowtime;
+			} else if (rc_message.contains("L1-C3")) {
+				requiredString_L1_C3 = rc_message.substring(rc_message.indexOf("(L1-C3-") + 7, rc_message.indexOf(".paket)"));
+				packet_number_L1_C3 = Integer.parseInt(requiredString_L1_C3);
+				wordComeList_L1_C3[packet_number_L1_C3] = rc_message;
+				timeStampList_L1_C3[packet_number_L1_C3] = nowtime;
+			} else if (rc_message.contains("L2-C1")) {
+				requiredString_L2_C1 = rc_message.substring(rc_message.indexOf("(L2-C1-") + 7, rc_message.indexOf(".paket)"));
+				packet_number_L2_C1 = Integer.parseInt(requiredString_L2_C1);
+				wordComeList_L2_C1[packet_number_L2_C1] = rc_message;
+				timeStampList_L2_C1[packet_number_L2_C1] = nowtime;
+			} else if (rc_message.contains("L2-C2")) {
+				requiredString_L2_C2 = rc_message.substring(rc_message.indexOf("(L2-C2-") + 7, rc_message.indexOf(".paket)"));
+				packet_number_L2_C2 = Integer.parseInt(requiredString_L2_C2);
+				wordComeList_L2_C2[packet_number_L2_C2] = rc_message;
+				timeStampList_L2_C2[packet_number_L2_C2] = nowtime;
+
+			} else if (rc_message.contains("L2-C3")) {
+				requiredString_L2_C3 = rc_message.substring(rc_message.indexOf("(L2-C3-") + 7, rc_message.indexOf(".paket)"));
+				packet_number_L2_C3 = Integer.parseInt(requiredString_L2_C3);
+				wordComeList_L2_C3[packet_number_L2_C3] = rc_message;
+				timeStampList_L2_C3[packet_number_L2_C3] = nowtime;
+			} else {
+				System.out.println("Alinan mesajda hata var");
+			}
+		}
+
+		if (end_process_check_L1_C1 && end_process_check_L1_C2 && end_process_check_L1_C3 && end_process_check_L2_C1 
+			&& end_process_check_L2_C2 && end_process_check_L2_C3)
+		{
+			System.out.println("Isleme sureci basladi.");
+			for (int clients_sayac = 0; clients_sayac < 6; clients_sayac++) {
+
+				if (clients_sayac == 0) {
+					System.out.println("Client-L1-C1 islemi yapiliyor");
+					for (int sayac = 0; sayac < 28000; sayac++)
+					// 28000 temsilidir. Son mesajlari gelince kontrol eder ve hesapları bitirir.
+					{
+
+						// null deger altinda liste dok
+						if (wordComeList_L1_C1[sayac].contains("SL1-C1-SON")) {
+							System.out.println("Client-L1-C1 hesaplandi.");
+							modelli_olcum_suresi("END_PROCESS-L1-C1", timeStampList_L1_C1[sayac]);
+							break;
+						}
+
+						// degisecek_deger
+						// model_olcum_isletim_suresi(message);
+						// modelsiz_olcum_suresi(message);
+						if (wordComeList_L1_C1[sayac] == null) {
+							System.out.println("Client_L1-C1 Null deger tespiti!!!" + sayac + ". deger listeye ekleniyor");
+							null_variable_list_L1_C1.add(Integer.toString(sayac) + ".mesaj");
+						} else {
+							// wordcomelisttest
+
+							modelli_olcum_suresi(wordComeList_L1_C1[sayac], timeStampList_L1_C1[sayac]);
+						}
+					}
+
+				}
+
+				else if (clients_sayac == 1) {
+					System.out.println("Client-L1_C2 islemi yapiliyor");
+					for (int sayac = 0; sayac < 28000; sayac++)
+					// 28000 temsilidir. Son mesajlari gelince kontrol eder ve hesapları bitirir.
+					{
+
+						// null deger altinda liste dok
+						if (wordComeList_L1_C2[sayac].contains("SL1-C2-SON")) {
+							System.out.println("Client-L1-C2 hesaplandi.");
+							modelli_olcum_suresi("END_PROCESS-L1-C2", timeStampList_L1_C2[sayac]);
+							break;
+						}
+
+
+						if (wordComeList_L1_C2[sayac] == null) {
+							System.out
+									.println("Client_L1-C2 Null deger tespiti!!!" + sayac + ". deger listeye ekleniyor");
+							null_variable_list_L1_C2.add(Integer.toString(sayac) + ".mesaj");
+						} else {
+							// wordcomelisttest
+
+							modelli_olcum_suresi(wordComeList_L1_C2[sayac], timeStampList_L1_C2[sayac]);
+						}
+					}
+
+				}
+
+				else if (clients_sayac == 2) {
+					System.out.println("Client-L1-C3 islemi yapiliyor");
+					for (int sayac = 0; sayac < 28000; sayac++)
+					// 28000 temsilidir. Son mesajlari gelince kontrol eder ve hesapları bitirir.
+					{
+
+						// null deger altinda liste dok
+						if (wordComeList_L1_C3[sayac].contains("SL1-C3-SON")) {
+							System.out.println("Client-L1-C3 hesaplandi.");
+							modelli_olcum_suresi("END_PROCESS-L1-C3", timeStampList_L1_C3[sayac]);
+							break;
+						}
+
+						// degisecek_deger
+						// model_olcum_isletim_suresi(message);
+						// modelsiz_olcum_suresi(message);
+						if (wordComeList_L1_C3[sayac] == null) {
+							System.out
+									.println("Client_L1-C3 Null deger tespiti!!!" + sayac + ". deger listeye ekleniyor");
+							null_variable_list_L1_C3.add(Integer.toString(sayac) + ".mesaj");
+						} else {
+							// wordcomelisttest
+
+							modelli_olcum_suresi(wordComeList_L1_C3[sayac], timeStampList_L1_C3[sayac]);
+						}
+					}
+				}
+
+				else if (clients_sayac == 3) {
+					System.out.println("Client-L2-C1 islemi yapiliyor");
+					for (int sayac = 0; sayac < 28000; sayac++)
+					// 28000 temsilidir. Son mesajlari gelince kontrol eder ve hesapları bitirir.
+					{
+
+						// null deger altinda liste dok
+						if (wordComeList_L2_C1[sayac].contains("SL2-C1-SON")) {
+							System.out.println("Client-L2-C1 hesaplandi.");
+							modelli_olcum_suresi("END_PROCESS-L2-C1", timeStampList_L2_C1[sayac]);
+							break;
+						}
+
+						// degisecek_deger
+						// model_olcum_isletim_suresi(message);
+						// modelsiz_olcum_suresi(message);
+						if (wordComeList_L2_C1[sayac] == null) {
+							System.out
+									.println("Client_L2-C1 Null deger tespiti!!!" + sayac + ". deger listeye ekleniyor");
+							null_variable_list_L2_C1.add(Integer.toString(sayac) + ".mesaj");
+						} else {
+							// wordcomelisttest
+
+							modelli_olcum_suresi(wordComeList_L2_C1[sayac], timeStampList_L2_C1[sayac]);
+						}
+					}
+
+				}
+
+				else if (clients_sayac == 4) {
+					System.out.println("Client-L2-C2 islemi yapiliyor");
+					for (int sayac = 0; sayac < 28000; sayac++)
+					// 28000 temsilidir. Son mesajlari gelince kontrol eder ve hesapları bitirir.
+					{
+
+						// null deger altinda liste dok
+						if (wordComeList_L2_C2[sayac].contains("SL2-C2-SON")) {
+							System.out.println("Client-L2-C2 hesaplandi.");
+							modelli_olcum_suresi("END_PROCESS-L2-C2", timeStampList_L2_C2[sayac]);
+							break;
+						}
+
+						// degisecek_deger
+						// model_olcum_isletim_suresi(message);
+						// modelsiz_olcum_suresi(message);
+						if (wordComeList_L2_C2[sayac] == null) {
+							System.out.println("Client_L2-C2 Null deger tespiti!!!" + sayac + ". deger listeye ekleniyor");
+							null_variable_list_L2_C2.add(Integer.toString(sayac) + ".mesaj");
+						} else {
+							// wordcomelisttest
+
+							modelli_olcum_suresi(wordComeList_L2_C2[sayac], timeStampList_L2_C2[sayac]);
+						}
+					}
+
+				}
+
+				else if (clients_sayac == 5) {
+					System.out.println("Client-L2-C3 islemi yapiliyor");
+					for (int sayac = 0; sayac < 28000; sayac++)
+					// 28000 temsilidir. Son mesajlari gelince kontrol eder ve hesapları bitirir.
+					{
+
+						// null deger altinda liste dok
+						if (wordComeList_L2_C3[sayac].contains("L2-C3-SON")) {
+							System.out.println("Client-L2-C3 hesaplandi.");
+							modelli_olcum_suresi("END_PROCESS-L2-C3", timeStampList_L2_C3[sayac]);
+							break;
+						}
+
+						// degisecek_deger
+						// model_olcum_isletim_suresi(message);
+						// modelsiz_olcum_suresi(message);
+						if (wordComeList_L2_C3[sayac] == null) {
+							System.out.println("Client_L2-C3 Null deger tespiti!!!" + sayac + ". deger listeye ekleniyor");
+							null_variable_list_L2_C3.add(Integer.toString(sayac) + ".mesaj");
+						} else {
+							// wordcomelisttest
+
+							modelli_olcum_suresi(wordComeList_L2_C3[sayac], timeStampList_L2_C3[sayac]);
+						}
+					}
+				}
+			}
+
+		}
+
+		////////// test et
+		
+		 
+		 
+		 
+
+	}
+
+}
