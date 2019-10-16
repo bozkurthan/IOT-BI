@@ -7,13 +7,25 @@ from numpy import long
 
 global sub_message
 
-#pragma
+# pragma CONFIG
 client_ID = "CC0"
 _client_will_sub = True
-_client_has_model = False
+_client_has_model = True
 
 test_packet_length = 10
 
+sub_broker_address = "127.0.0.1"
+sub_broker_port = 1883
+client_sub_topic = "test"
+
+pub_broker_address = "127.0.0.1"
+pub_broker_port = 1883
+client_pub_topic = "test3"
+publish_size = 15
+client_number = "C1"
+location_number = "L1"
+
+##INCOMING MESSAGE TRANSMISSION TIME LOG DEFINITIONS
 total_packet_tx_time_L1_C1 = 0
 total_packet_tx_time_L1_C2 = 0
 total_packet_tx_time_L1_C3 = 0
@@ -35,18 +47,23 @@ packet_counter_L2_C1 = 1
 packet_counter_L2_C2 = 1
 packet_counter_L2_C3 = 1
 
+##MODEL TIME LOG DEFINITIONS
+total_model_proc_time_L1_C1 = 0
+total_model_proc_time_L1_C2 = 0
+total_model_proc_time_L1_C3 = 0
+total_model_proc_time_L2_C1 = 0
+total_model_proc_time_L2_C2 = 0
+total_model_proc_time_L2_C3 = 0
 
-sub_broker_address = "127.0.0.1"
-sub_broker_port    = 1883
-client_sub_topic   = "test"
+_mpacket_counter_L1_C1 = 1
+_mpacket_counter_L1_C2 = 1
+_mpacket_counter_L1_C3 = 1
+_mpacket_counter_L2_C1 = 1
+_mpacket_counter_L2_C2 = 1
+_mpacket_counter_L2_C3 = 1
 
 
-pub_broker_address = "127.0.0.1"
-pub_broker_port    = 1883
-client_pub_topic   = "test3"
-publish_size = 15
-client_number = "C1"
-location_number = "L1"
+
 
 
 def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
@@ -64,12 +81,7 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     global total_packet_tx_time_L2_C2
     global total_packet_tx_time_L2_C3
 
-    print(packet_header)
-
     if "L1-C1" in packet_header:
-        print(packet_header)
-        print(packet_counter_L1_C1)
-        print(total_packet_tx_time_L1_C1)
         if (packet_counter_L1_C1 == test_packet_length):
             model_log_file = open("transmission_time_hoop-L1C1.txt", "a")
             model_log_file.write(str(total_packet_tx_time_L1_C1) + "\n")
@@ -132,35 +144,83 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     else:
         print("Problem in data_log_cfg_tx_time")
 
-
 def data_log_model_time(packet_header, end_time):
-    if (packet_header == "L1-C1"):
-        log_file = open("model_proc_time-L1C1.txt", "a")
-        log_file.write(str(end_time) + "\n")
-        log_file.close()
-    elif (packet_header == "L1-C2"):
-        log_file = open("model_proc_time-L1C2.txt", "a")
-        log_file.write(str(end_time) + "\n")
-        log_file.close()
-    elif (packet_header == "L1-C3"):
-        log_file = open("model_proc_time-L1C3.txt", "a")
-        log_file.write(str(end_time) + "\n")
-        log_file.close()
-    elif (packet_header == "L2-C1"):
-        log_file = open("model_proc_time-L2C1.txt", "a")
-        log_file.write(str(end_time) + "\n")
-        log_file.close()
-    elif (packet_header == "L2-C2"):
-        log_file = open("model_proc_time-L2C2.txt", "a")
-        log_file.write(str(end_time) + "\n")
-        log_file.close()
-    elif (packet_header == "L2-C3"):
-        log_file = open("model_proc_time-L2C3.txt", "a")
-        log_file.write(str(end_time) + "\n")
-        log_file.close()
+    global _mpacket_counter_L1_C1
+    global _mpacket_counter_L1_C2
+    global _mpacket_counter_L1_C3
+    global _mpacket_counter_L2_C1
+    global _mpacket_counter_L2_C2
+    global _mpacket_counter_L2_C3
+
+    global total_model_proc_time_L1_C1
+    global total_model_proc_time_L1_C2
+    global total_model_proc_time_L1_C3
+    global total_model_proc_time_L2_C1
+    global total_model_proc_time_L2_C2
+    global total_model_proc_time_L2_C3
+
+    if "L1-C1" in packet_header:
+        if (_mpacket_counter_L1_C1 == test_packet_length):
+            model_log_file = open("data_log_model_time-L1C1.txt", "a")
+            model_log_file.write(str(total_model_proc_time_L1_C1) + "\n")
+            model_log_file.close()
+            _mpacket_counter_L1_C1 = 1
+            total_model_proc_time_L1_C1 = 1
+        else:
+            total_model_proc_time_L1_C1 = total_model_proc_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
+            _mpacket_counter_L1_C1 = _mpacket_counter_L1_C1 + 1
+    elif "L1-C2" in packet_header:
+        if (_mpacket_counter_L1_C2 == test_packet_length):
+            model_log_file = open("data_log_model_time-L1C2.txt", "a")
+            model_log_file.write(str(total_model_proc_time_L1_C2) + "\n")
+            model_log_file.close()
+            _mpacket_counter_L1_C2 = 1
+            total_model_proc_time_L1_C2 = 1
+        else:
+            total_model_proc_time_L1_C2 = total_model_proc_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
+            _mpacket_counter_L1_C2 = _mpacket_counter_L1_C2 + 1
+    elif "L1-C3" in packet_header:
+        if (_mpacket_counter_L1_C3 == test_packet_length):
+            model_log_file = open("data_log_model_time-L1C3.txt", "a")
+            model_log_file.write(str(total_model_proc_time_L1_C3) + "\n")
+            model_log_file.close()
+            _mpacket_counter_L1_C3 = 1
+            total_model_proc_time_L1_C3 = 1
+        else:
+            total_model_proc_time_L1_C3 = total_model_proc_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
+            _mpacket_counter_L1_C3 = _mpacket_counter_L1_C3 + 1
+    elif "L2-C1" in packet_header:
+        if (_mpacket_counter_L2_C1 == test_packet_length):
+            model_log_file = open("data_log_model_time-L2C1.txt", "a")
+            model_log_file.write(str(total_model_proc_time_L2_C1) + "\n")
+            model_log_file.close()
+            _mpacket_counter_L2_C1 = 1
+            total_model_proc_time_L2_C1 = 1
+        else:
+            total_model_proc_time_L2_C1 = total_model_proc_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
+            _mpacket_counter_L2_C1 = _mpacket_counter_L2_C1 + 1
+    elif "L2-C2" in packet_header:
+        if (_mpacket_counter_L2_C2 == test_packet_length):
+            model_log_file = open("data_log_model_time-L2C2.txt", "a")
+            model_log_file.write(str(total_model_proc_time_L2_C2) + "\n")
+            model_log_file.close()
+            _mpacket_counter_L2_C2 = 1
+            total_model_proc_time_L2_C2 = 1
+        else:
+            total_model_proc_time_L2_C2 = total_model_proc_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
+            _mpacket_counter_L2_C2 = _mpacket_counter_L2_C2 + 1
+    elif "L2-C3" in packet_header:
+        if (_mpacket_counter_L2_C3 == test_packet_length):
+            model_log_file = open("data_log_model_time-L2C3.txt", "a")
+            model_log_file.write(str(total_model_proc_time_L2_C3) + "\n")
+            model_log_file.close()
+            _mpacket_counter_L2_C3 = 1
+            total_model_proc_time_L2_C3 = 1
+        else:
+            total_model_proc_time_L2_C3 = total_model_proc_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
+            _mpacket_counter_L2_C3 = _mpacket_counter_L2_C3 + 1
     else:
         print("Problem in data_log_model_time")
-
 
 def data_process_to_pub(sub_message):
     if "NaN" in sub_message:
@@ -180,24 +240,21 @@ def data_process_to_pub(sub_message):
                 data_message1 = "11.11"  # Bu mesaj model sonunda elde edilen değerdir
                 data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
-                end_time = long(time.time() * 1000) - start_time
-                data_log_model_time(packet_header, end_time)
+                data_log_model_time(packet_header, start_time)
             elif (humidity_data == "NaN"):
                 start_time = long(time.time() * 1000)
                 # Burada model işleyecek
                 data_message1 = light_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message2 = "22.22"  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
-                end_time = long(time.time() * 1000) - start_time
-                data_log_model_time(packet_header, end_time)
+                data_log_model_time(packet_header, start_time)
             elif (temperature_data == "NaN"):
                 # Burada model işleyecek
                 start_time = long(time.time() * 1000)
                 data_message1 = light_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = "33.33"  # Bu mesaj model sonunda elde edilen değerdir
-                end_time = long(time.time() * 1000) - start_time
-                data_log_model_time(packet_header, end_time)
+                data_log_model_time(packet_header, start_time)
             else:
                 print("Problem occured")
 
