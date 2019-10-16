@@ -1,16 +1,14 @@
 import paho.mqtt.client as mqtt  # import the client1
 import paho.mqtt.publish as publish
 import time, sys, argparse, math
-from decimal import Decimal
-
 from numpy import long
 
 global sub_message
 
 # pragma CONFIG
 client_ID = "CC0"
-_client_will_sub = True
-_client_has_model = True
+_client_will_sub = False
+_client_has_model = False
 
 test_packet_length = 10
 
@@ -21,9 +19,10 @@ client_sub_topic = "test"
 pub_broker_address = "127.0.0.1"
 pub_broker_port = 1883
 client_pub_topic = "test3"
-publish_size = 15
-client_number = "C1"
-location_number = "L1"
+publish_delay_time = 0.2
+publish_size = 100
+client_number = "C2"
+location_number = "L2"
 
 ##INCOMING MESSAGE TRANSMISSION TIME LOG DEFINITIONS
 total_packet_tx_time_L1_C1 = 0
@@ -309,33 +308,23 @@ def client_pub ():
 
     if(_client_has_model):
         print("Model message process")
-        model_log_file = open("model_log_file.txt", "w")
-        model_log_file.write("Model isletim sureleri (milisaniye)***\n")
-
         i = 0
         while (i < publish_size):
-            model_start_time = time.time() * 1000
+            model_start_time = long(time.time() * 1000)
 
             # BURADA MODEL İŞLETİLECEK VE SONUCU data_message değişkenelerine işlenecek.
 
             data_message1 = "37.511"  # Bu mesaj model sonunda elde edilen değerdir
             data_message2 = "52.87946"  # Bu mesaj model sonunda elde edilen değerdir
             data_message3 = "33333"  # Bu mesaj model sonunda elde edilen değerdir
-
-            time.sleep(2)
-            model_end_time = time.time() * 1000
-            final_time = model_end_time - model_start_time
-
-            model_log_file.write(str(final_time) +"\n")
-
+            data_log_model_time(location_number + "-" + client_number, model_start_time)
             publish_message = "(" + location_number + "-" + client_number + "-" + str(i) + ".Paket),(" + str(time.time() * 1000) + "),(" + data_message1 + "," +data_message2 + ","+ data_message3 + ")"
 
             publish.single(client_pub_topic, publish_message, 1, False, pub_broker_address, pub_broker_port)
 
             #Delay time
-            time.sleep(1)
+            time.sleep(publish_delay_time)
             i = i + 1
-        model_log_file.close()
 
 
 
@@ -346,12 +335,10 @@ def client_pub ():
             data_message1= "37.511"   #Bu mesaj csv dosyasından alınacak yoksa NaN yazılacak IBRAHIM HOCA
             data_message2= "52.87946" #Bu mesaj csv dosyasından alınacak  yoksa NaN yazılacak IBRAHIM HOCA
             data_message3= "NaN"      #Bu mesaj csv dosyasından alınacak  yoksa NaN yazılacak IBRAHIM HOCA
-
             publish_message = "( (" + location_number + "-" + client_number + "-" + str(i) + ".Paket), (" + str(time.time() * 1000) + "), ( ( Data: (Light: " + data_message1 + ", Humidity: " + data_message2 + ", Temperature:" + data_message3 + ") ) )"
-
             publish.single(client_pub_topic, publish_message, 1, False, pub_broker_address, pub_broker_port)
 
-            time.sleep(1)
+            time.sleep(publish_delay_time)
             i = i + 1
 
 if(_client_will_sub):
