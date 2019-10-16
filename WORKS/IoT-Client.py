@@ -1,16 +1,20 @@
 import paho.mqtt.client as mqtt  # import the client1
 import paho.mqtt.publish as publish
 import time, sys, argparse, math
+from decimal import Decimal
+
+from numpy import long
 
 global sub_message
 
 #pragma
 client_ID = "CC0"
 _client_will_sub = True
-_client_has_model = True
+_client_has_model = False
+test_packet_length = 100
+total_packet_tx_time = 0
+total_packet_size = 0
 
-client_number   = "C1"
-location_number = "L1"
 
 
 sub_broker_address = "127.0.0.1"
@@ -22,6 +26,66 @@ pub_broker_address = "127.0.0.1"
 pub_broker_port    = 1883
 client_pub_topic   = "test3"
 publish_size = 15
+client_number = "C1"
+location_number = "L1"
+
+
+def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
+    if (packet_header == "L1-C1"):
+        model_log_file = open("transmission_time_hoop-L1C1.txt", "a")
+        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
+        model_log_file.close()
+    elif (packet_header == "L1-C2"):
+        model_log_file = open("transmission_time_hoop-L1C2.txt", "a")
+        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
+        model_log_file.close()
+    elif (packet_header == "L1-C3"):
+        model_log_file = open("transmission_time_hoop-L1C3.txt", "a")
+        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
+        model_log_file.close()
+    elif (packet_header == "L2-C1"):
+        model_log_file = open("transmission_time_hoop-L2C1.txt", "a")
+        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
+        model_log_file.close()
+    elif (packet_header == "L2-C2"):
+        model_log_file = open("transmission_time_hoop-L2C2.txt", "a")
+        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
+        model_log_file.close()
+    elif (packet_header == "L2-C3"):
+        model_log_file = open("transmission_time_hoop-L2C3.txt", "a")
+        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
+        model_log_file.close()
+    else:
+        print("Problem in data_log_cfg_tx_time")
+
+
+def data_log_model_time(packet_header, end_time):
+    if (packet_header == "L1-C1"):
+        log_file = open("model_proc_time-L1C1.txt", "a")
+        log_file.write(str(end_time) + "\n")
+        log_file.close()
+    elif (packet_header == "L1-C2"):
+        log_file = open("model_proc_time-L1C2.txt", "a")
+        log_file.write(str(end_time) + "\n")
+        log_file.close()
+    elif (packet_header == "L1-C3"):
+        log_file = open("model_proc_time-L1C3.txt", "a")
+        log_file.write(str(end_time) + "\n")
+        log_file.close()
+    elif (packet_header == "L2-C1"):
+        log_file = open("model_proc_time-L2C1.txt", "a")
+        log_file.write(str(end_time) + "\n")
+        log_file.close()
+    elif (packet_header == "L2-C2"):
+        log_file = open("model_proc_time-L2C2.txt", "a")
+        log_file.write(str(end_time) + "\n")
+        log_file.close()
+    elif (packet_header == "L2-C3"):
+        log_file = open("model_proc_time-L2C3.txt", "a")
+        log_file.write(str(end_time) + "\n")
+        log_file.close()
+    else:
+        print("Problem in data_log_model_time")
 
 
 def data_process_to_pub(sub_message):
@@ -30,53 +94,41 @@ def data_process_to_pub(sub_message):
             raw_data_info, raw_data_sensors = sub_message.split("Data: (")
             before_time, message_time = raw_data_info.split("[")
             message_time, unused = message_time.split("]")
-            model_log_file = open("transmission_time_hoop.txt", "a")
-            model_log_file.write(str(time.time() * 1000 - float(message_time)) + "\n")
-            model_log_file.close()
             packet_header = before_time.replace("( ", "").replace(" ", "")
-            print(message_time)
+            incoming_data_log_cfg_tx_time(packet_header, message_time, sub_message.__sizeof__())
             light_data, humidity_data, temperature_data = raw_data_sensors.split(",")
             light_data = light_data.replace("Light:", "")
             humidity_data = humidity_data.replace("Humidty:", "").replace(" ", "")
             temperature_data = temperature_data.replace("Temperature:", "").replace(" ", "").replace(")))", "")
             if (light_data == "NaN"):
-                start_time = time.time() * 1000
+                start_time = long(time.time() * 1000)
                 # Burada model işleyecek
                 data_message1 = "11.11"  # Bu mesaj model sonunda elde edilen değerdir
                 data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
-                end_time = time.time() * 1000 - start_time
-                log_file = open("model_proc_time.txt", "a")
-                log_file.write(str(end_time) + "\n")
-                log_file.close()
-                print("Doforluxx")
+                end_time = long(time.time() * 1000) - start_time
+                data_log_model_time(packet_header, end_time)
             elif (humidity_data == "NaN"):
-                start_time = time.time() * 1000
+                start_time = long(time.time() * 1000)
                 # Burada model işleyecek
                 data_message1 = light_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message2 = "22.22"  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
-                end_time = time.time() * 1000 - start_time
-                log_file = open("model_proc_time.txt", "a")
-                log_file.write(str(end_time) + "\n")
-                log_file.close()
-                print("Doforhumd")
+                end_time = long(time.time() * 1000) - start_time
+                data_log_model_time(packet_header, end_time)
             elif (temperature_data == "NaN"):
                 # Burada model işleyecek
-                start_time = time.time() * 1000
+                start_time = long(time.time() * 1000)
                 data_message1 = light_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_message3 = "33.33"  # Bu mesaj model sonunda elde edilen değerdir
-                end_time = time.time() * 1000 - start_time
-                log_file = open("model_proc_time.txt", "a")
-                log_file.write(str(end_time) + "\n")
-                log_file.close()
-                print("Dofortemp")
+                end_time = long(time.time() * 1000) - start_time
+                data_log_model_time(packet_header, end_time)
             else:
                 print("Problem occured")
 
-            new_message = packet_header + "[" + str(
-                time.time() * 1000) + "],(" + data_message1 + "," + data_message2 + "," + data_message3 + ")"
+            new_message = packet_header + "[" + str(long(time.time() * 1000)) \
+                          + "],(" + data_message1 + "," + data_message2 + "," + data_message3 + ")"
             publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
         else:
             # These code snippet provides that it handles time by incoming messages and saves them to file.
@@ -85,8 +137,8 @@ def data_process_to_pub(sub_message):
             time_first, message_time = sub_message.split("[")
             message_time, unused = message_time.split("]")
             unused, time_last = sub_message.split("]")
-            model_log_file = open("unproc_transmission_time.txt", "a")
-            model_log_file.write(str(time.time() * 1000 - float(message_time)) + "\n")
+            model_log_file = open("unproc_tx_time.txt", "a")
+            model_log_file.write(str(long(time.time() * 1000) - Decimal(message_time)) + "\n")
             model_log_file.close()
             new_message = time_first + "[" + str(time.time() * 1000) + "]" + time_last
             publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
@@ -97,9 +149,7 @@ def data_process_to_pub(sub_message):
         time_first, message_time = sub_message.split("[")
         message_time, unused = message_time.split("]")
         unused, time_last = sub_message.split("]")
-        model_log_file = open("transmission_time.txt", "a")
-        model_log_file.write(str(time.time() * 1000 - float(message_time)) + "\n")
-        model_log_file.close()
+        incoming_data_log_cfg_tx_time(time_first, message_time, sub_message.__sizeof__())
         new_message = time_first + "[" + str(time.time() * 1000) + "]" + time_last
         publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
 
