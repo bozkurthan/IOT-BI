@@ -11,10 +11,29 @@ global sub_message
 client_ID = "CC0"
 _client_will_sub = True
 _client_has_model = False
-test_packet_length = 100
-total_packet_tx_time = 0
-total_packet_size = 0
 
+test_packet_length = 10
+
+total_packet_tx_time_L1_C1 = 0
+total_packet_tx_time_L1_C2 = 0
+total_packet_tx_time_L1_C3 = 0
+total_packet_tx_time_L2_C1 = 0
+total_packet_tx_time_L2_C2 = 0
+total_packet_tx_time_L2_C3 = 0
+
+total_packet_size_L1_C1 = 0
+total_packet_size_L1_C2 = 0
+total_packet_size_L1_C3 = 0
+total_packet_size_L2_C1 = 0
+total_packet_size_L2_C2 = 0
+total_packet_size_L2_C3 = 0
+
+packet_counter_L1_C1 = 1
+packet_counter_L1_C2 = 1
+packet_counter_L1_C3 = 1
+packet_counter_L2_C1 = 1
+packet_counter_L2_C2 = 1
+packet_counter_L2_C3 = 1
 
 
 sub_broker_address = "127.0.0.1"
@@ -31,30 +50,85 @@ location_number = "L1"
 
 
 def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
-    if (packet_header == "L1-C1"):
-        model_log_file = open("transmission_time_hoop-L1C1.txt", "a")
-        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
-        model_log_file.close()
-    elif (packet_header == "L1-C2"):
-        model_log_file = open("transmission_time_hoop-L1C2.txt", "a")
-        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
-        model_log_file.close()
-    elif (packet_header == "L1-C3"):
-        model_log_file = open("transmission_time_hoop-L1C3.txt", "a")
-        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
-        model_log_file.close()
-    elif (packet_header == "L2-C1"):
-        model_log_file = open("transmission_time_hoop-L2C1.txt", "a")
-        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
-        model_log_file.close()
-    elif (packet_header == "L2-C2"):
-        model_log_file = open("transmission_time_hoop-L2C2.txt", "a")
-        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
-        model_log_file.close()
-    elif (packet_header == "L2-C3"):
-        model_log_file = open("transmission_time_hoop-L2C3.txt", "a")
-        model_log_file.write(str(long(time.time()) * 1000 - long(end_time)) + "\n")
-        model_log_file.close()
+    global packet_counter_L1_C1
+    global packet_counter_L1_C2
+    global packet_counter_L1_C3
+    global packet_counter_L2_C1
+    global packet_counter_L2_C2
+    global packet_counter_L2_C3
+
+    global total_packet_tx_time_L1_C1
+    global total_packet_tx_time_L1_C2
+    global total_packet_tx_time_L1_C3
+    global total_packet_tx_time_L2_C1
+    global total_packet_tx_time_L2_C2
+    global total_packet_tx_time_L2_C3
+
+    print(packet_header)
+
+    if "L1-C1" in packet_header:
+        print(packet_header)
+        print(packet_counter_L1_C1)
+        print(total_packet_tx_time_L1_C1)
+        if (packet_counter_L1_C1 == test_packet_length):
+            model_log_file = open("transmission_time_hoop-L1C1.txt", "a")
+            model_log_file.write(str(total_packet_tx_time_L1_C1) + "\n")
+            model_log_file.close()
+            packet_counter_L1_C1 = 1
+            total_packet_tx_time_L1_C1 = 1
+        else:
+            total_packet_tx_time_L1_C1 = total_packet_tx_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
+            packet_counter_L1_C1 = packet_counter_L1_C1 + 1
+    elif "L1-C2" in packet_header:
+        if (packet_counter_L1_C2 == test_packet_length):
+            model_log_file = open("transmission_time_hoop-L1C2.txt", "a")
+            model_log_file.write(str(total_packet_tx_time_L1_C2) + "\n")
+            model_log_file.close()
+            packet_counter_L1_C2 = 1
+            total_packet_tx_time_L1_C2 = 1
+        else:
+            total_packet_tx_time_L1_C2 = total_packet_tx_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
+            packet_counter_L1_C2 = packet_counter_L1_C2 + 1
+    elif "L1-C3" in packet_header:
+        if (packet_counter_L1_C3 == test_packet_length):
+            model_log_file = open("transmission_time_hoop-L1C3.txt", "a")
+            model_log_file.write(str(total_packet_tx_time_L1_C3) + "\n")
+            model_log_file.close()
+            packet_counter_L1_C3 = 1
+            total_packet_tx_time_L1_C3 = 1
+        else:
+            total_packet_tx_time_L1_C3 = total_packet_tx_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
+            packet_counter_L1_C3 = packet_counter_L1_C3 + 1
+    elif "L2-C1" in packet_header:
+        if (packet_counter_L2_C1 == test_packet_length):
+            model_log_file = open("transmission_time_hoop-L2C1.txt", "a")
+            model_log_file.write(str(total_packet_tx_time_L2_C1) + "\n")
+            model_log_file.close()
+            packet_counter_L2_C1 = 1
+            total_packet_tx_time_L2_C1 = 1
+        else:
+            total_packet_tx_time_L2_C1 = total_packet_tx_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
+            packet_counter_L2_C1 = packet_counter_L2_C1 + 1
+    elif "L2-C2" in packet_header:
+        if (packet_counter_L2_C2 == test_packet_length):
+            model_log_file = open("transmission_time_hoop-L2C2.txt", "a")
+            model_log_file.write(str(total_packet_tx_time_L2_C2) + "\n")
+            model_log_file.close()
+            packet_counter_L2_C2 = 1
+            total_packet_tx_time_L2_C2 = 1
+        else:
+            total_packet_tx_time_L2_C2 = total_packet_tx_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
+            packet_counter_L2_C2 = packet_counter_L2_C2 + 1
+    elif "L2-C3" in packet_header:
+        if (packet_counter_L2_C3 == test_packet_length):
+            model_log_file = open("transmission_time_hoop-L2C3.txt", "a")
+            model_log_file.write(str(total_packet_tx_time_L2_C3) + "\n")
+            model_log_file.close()
+            packet_counter_L2_C3 = 1
+            total_packet_tx_time_L2_C3 = 1
+        else:
+            total_packet_tx_time_L2_C3 = total_packet_tx_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
+            packet_counter_L2_C3 = packet_counter_L2_C3 + 1
     else:
         print("Problem in data_log_cfg_tx_time")
 
@@ -137,9 +211,7 @@ def data_process_to_pub(sub_message):
             time_first, message_time = sub_message.split("[")
             message_time, unused = message_time.split("]")
             unused, time_last = sub_message.split("]")
-            model_log_file = open("unproc_tx_time.txt", "a")
-            model_log_file.write(str(long(time.time() * 1000) - Decimal(message_time)) + "\n")
-            model_log_file.close()
+            incoming_data_log_cfg_tx_time(time_first, message_time, sub_message.__sizeof__())
             new_message = time_first + "[" + str(time.time() * 1000) + "]" + time_last
             publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
     else:
@@ -158,8 +230,6 @@ def callback_on_message(client, userdata, message):
     # print("message received ", str(message.payload.decode("utf-8")))
     sub_message = str(message.payload.decode("utf-8"))
     data_process_to_pub(sub_message)
-
-
 
 def client_sub_pub ():
     print("This client will be run for publishing and subscribing. \n ")
