@@ -1,52 +1,15 @@
-# Program to show various ways to read and
-# write data in a file.
-file1 = open("myfile.txt", "w")
-L = ["This is Delhi \n", "This is Paris \n", "This is London \n"]
+import os.path
 
-# \n is placed to indicate EOL (End of Line)
-file1.write("Hello \n")
-file1.writelines(L)
-file1.close()  # to change file access modes
+save_path = '/home/hanco/PycharmProjects/IOT-BI/mahmut'
 
-file1 = open("myfile.txt", "r+")
+name_of_file = input("What is the name of the file: ")
 
-print
-"Output of Read function is "
-print
-file1.read()
-print
+completeName = os.path.join(save_path, name_of_file + ".txt")
 
-# seek(n) takes the file handle to the nth
-# bite from the beginning.
-file1.seek(0)
+file1 = open(completeName, "w")
 
-print
-"Output of Readline function is "
-print
-file1.readline()
-print
+toFile = input("Write what you want into the field")
 
-file1.seek(0)
+file1.write(toFile)
 
-# To show difference between read and readline
-print
-"Output of Read(9) function is "
-print
-file1.read(9)
-print
-
-file1.seek(0)
-
-print
-"Output of Readline(9) function is "
-print
-file1.readline(9)
-
-file1.seek(0)
-# readlines function
-print
-"Output of Readlines function is "
-print
-file1.readlines()
-print
 file1.close()
