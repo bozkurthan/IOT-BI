@@ -14,6 +14,8 @@
  *    Dave Locke - initial API and implementation and/or initial documentation
  */
 
+
+
 package org.eclipse.paho.sample.mqttv3app;
 
 import java.io.File;
@@ -212,7 +214,7 @@ public class Sample implements MqttCallback {
 		// will be received at the same level they were published at.
 		log("Subscribing to topic \"" + topicName + "\" qos " + 0);
 		log("Multisubs enabled");
-		client.subscribe("test4646", 0);// Subscribe topic (BURASI DEĞİŞECEK)
+		client.subscribe("test-server", 0);// Subscribe topic (BURASI DEĞİŞECEK)
 
 		// Continue waiting for messages until the Enter is pressed
 		log("Press <Enter> to exit");
