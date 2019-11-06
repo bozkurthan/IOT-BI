@@ -1,7 +1,7 @@
 import paho.mqtt.publish as publish
 
 pub_topic = "test-server"
-hostname = "127.0.0.1"
+hostname = "192.168.1.33"
 port = 1883
 
 publish.single(pub_topic, "SL1-C1-SON", 0, False, hostname, port)

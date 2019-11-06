@@ -15,15 +15,15 @@ time_of_unproccessed = 0.2
 time_of_proccessed = 0.2
 time_both_data = 1
 pub_topic = "test"
-host = "192.168.1.104"
+host = "192.168.1.36"
 qos_type = 1
 
-total_packet_unproc = 100
-total_packet_proc = 100
+total_packet_unproc = 200
+total_packet_proc = 200
 
-L1_C1_Packet_Send = True
-L1_C2_Packet_Send = True
-L1_C3_Packet_Send = True
+L1_C1_Packet_Send = False
+L1_C2_Packet_Send = False
+L1_C3_Packet_Send = False
 L2_C1_Packet_Send = True
 L2_C2_Packet_Send = True
 L2_C3_Packet_Send = True
