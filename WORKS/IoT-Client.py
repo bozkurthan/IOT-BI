@@ -5,8 +5,9 @@ import paho.mqtt.publish as publish
 import time, sys, argparse, math
 from numpy import long
 import os
-
+import shutil
 global sub_message
+from pathlib import Path
 
 # pragma CONFIG
 client_ID = "CC0"
@@ -29,10 +30,14 @@ location_number = "L1"
 
 dir_name = "data_log"
 log_dir = os.getcwd()
+log_dir = log_dir + "/" + dir_name
 
-log_dir = log_dir + "/" + dir_name + "/"
-os.rmdir(log_dir)
-os.mkdir(log_dir)
+if os.path.isdir(log_dir):
+    print("File exist")
+    shutil.rmtree(log_dir, ignore_errors=True)
+    os.mkdir(log_dir)
+else:
+    os.mkdir(log_dir)
 
 
 
