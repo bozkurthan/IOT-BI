@@ -13,6 +13,7 @@ import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
 from time import sleep
 from keras.models import load_model
+import shutil
 
 # model girdilerini almak için 2D bir dizi oluşturulsu- dolu değerleri bu diziliere alınıp modele verielcek
 
@@ -41,9 +42,14 @@ packet_name=location_number+ "-"+ client_number
 
 dir_name = "data_log"
 log_dir = os.getcwd()
-log_dir = log_dir + "/" + dir_name + "/"
-os.rmdir(log_dir)
-os.mkdir(log_dir)
+log_dir = log_dir + "/" + dir_name
+
+if os.path.isdir(log_dir):
+    print("File exist")
+    shutil.rmtree(log_dir, ignore_errors=True)
+    os.mkdir(log_dir)
+else:
+    os.mkdir(log_dir)
 
 ##INCOMING MESSAGE TRANSMISSION TIME LOG DEFINITIONS
 total_packet_tx_time_L1_C1 = 0
