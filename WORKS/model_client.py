@@ -23,32 +23,34 @@ global sub_message
 # pragma CONFIG
 client_ID = "CC0"
 _client_will_sub = False
-_client_has_model = True
+_client_has_model = False
 
 test_packet_length = 5
 
-sub_broker_address = "192.168.0.101"
+sub_broker_address = "192.168.1.103"
 sub_broker_port = 1883
-client_sub_topic = "test"
+client_sub_topic = "test1"
 
 pub_broker_address = "192.168.1.103"
 pub_broker_port = 1883
-client_pub_topic = "test"
+client_pub_topic = "test1"
 publish_delay_time = 0.2
-publish_size = 10
-client_number = "C1"
-location_number = "L1"
+publish_size = 20
+client_number = "C3"
+location_number = "L2"
 packet_name=location_number+ "-"+ client_number
 
-dir_name = "data_log"
+dir_name = "data_log1"
 log_dir = os.getcwd()
 log_dir = log_dir + "/" + dir_name
 
 if os.path.isdir(log_dir):
     print("File exist")
     shutil.rmtree(log_dir, ignore_errors=True)
+    log_dir = log_dir + "/"
     os.mkdir(log_dir)
 else:
+    log_dir = log_dir + "/"
     os.mkdir(log_dir)
 
 ##INCOMING MESSAGE TRANSMISSION TIME LOG DEFINITIONS
@@ -153,10 +155,10 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     if "L1-C1" in packet_header:
         if (packet_counter_L1_C1 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L1C1.txt", "a")
-            model_log_file.write(str(total_packet_tx_time_L1_C1) + "\n")
+            model_log_file.write(str(total_packet_tx_time_L1_C1/test_packet_length) + "\n")
             model_log_file.close()
             model_size_log_file = open(log_dir + "packet_size_hoop-L1C1.txt", "a")
-            model_size_log_file.write(str(total_packet_size_L1_C1) + "\n")
+            model_size_log_file.write(str(total_packet_size_L1_C1/test_packet_length) + "\n")
             model_size_log_file.close()
             packet_counter_L1_C1 = 1
             total_packet_tx_time_L1_C1 = 0
@@ -168,10 +170,10 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     elif "L1-C2" in packet_header:
         if (packet_counter_L1_C2 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L1C2.txt", "a")
-            model_log_file.write(str(total_packet_tx_time_L1_C2) + "\n")
+            model_log_file.write(str(total_packet_tx_time_L1_C2/test_packet_length) + "\n")
             model_log_file.close()
             model_size_log_file = open(log_dir + "packet_size_hoop-L1C2.txt", "a")
-            model_size_log_file.write(str(total_packet_size_L1_C2) + "\n")
+            model_size_log_file.write(str(total_packet_size_L1_C2/test_packet_length) + "\n")
             model_size_log_file.close()
             packet_counter_L1_C2 = 1
             total_packet_tx_time_L1_C2 = 0
@@ -182,10 +184,10 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     elif "L1-C3" in packet_header:
         if (packet_counter_L1_C3 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L1C3.txt", "a")
-            model_log_file.write(str(total_packet_tx_time_L1_C3) + "\n")
+            model_log_file.write(str(total_packet_tx_time_L1_C3/test_packet_length) + "\n")
             model_log_file.close()
             model_size_log_file = open(log_dir + "packet_size_hoop-L1C3.txt", "a")
-            model_size_log_file.write(str(total_packet_size_L1_C3) + "\n")
+            model_size_log_file.write(str(total_packet_size_L1_C3/test_packet_length) + "\n")
             model_size_log_file.close()
             packet_counter_L1_C3 = 1
             total_packet_tx_time_L1_C3 = 0
@@ -196,10 +198,10 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     elif "L2-C1" in packet_header:
         if (packet_counter_L2_C1 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L2C1.txt", "a")
-            model_log_file.write(str(total_packet_tx_time_L2_C1) + "\n")
+            model_log_file.write(str(total_packet_tx_time_L2_C1/test_packet_length) + "\n")
             model_log_file.close()
             model_size_log_file = open(log_dir + "packet_size_hoop-L2C1.txt", "a")
-            model_size_log_file.write(str(total_packet_size_L2_C1) + "\n")
+            model_size_log_file.write(str(total_packet_size_L2_C1/test_packet_length) + "\n")
             model_size_log_file.close()
             packet_counter_L2_C1 = 1
             total_packet_tx_time_L2_C1 = 0
@@ -210,10 +212,10 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     elif "L2-C2" in packet_header:
         if (packet_counter_L2_C2 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L2C2.txt", "a")
-            model_log_file.write(str(total_packet_tx_time_L2_C2) + "\n")
+            model_log_file.write(str(total_packet_tx_time_L2_C2/test_packet_length) + "\n")
             model_log_file.close()
             model_size_log_file = open(log_dir + "packet_size_hoop-L2C2.txt", "a")
-            model_size_log_file.write(str(total_packet_size_L2_C2) + "\n")
+            model_size_log_file.write(str(total_packet_size_L2_C2/test_packet_length) + "\n")
             model_size_log_file.close()
             packet_counter_L2_C2 = 1
             total_packet_tx_time_L2_C2 = 0
@@ -224,10 +226,10 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     elif "L2-C3" in packet_header:
         if (packet_counter_L2_C3 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L2C3.txt", "a")
-            model_log_file.write(str(total_packet_tx_time_L2_C3) + "\n")
+            model_log_file.write(str(total_packet_tx_time_L2_C3/test_packet_length) + "\n")
             model_log_file.close()
             model_size_log_file = open(log_dir + "packet_size_hoop-L2C3.txt", "a")
-            model_size_log_file.write(str(total_packet_size_L2_C3) + "\n")
+            model_size_log_file.write(str(total_packet_size_L2_C3/test_packet_length) + "\n")
             model_size_log_file.close()
             packet_counter_L2_C3 = 1
             total_packet_tx_time_L2_C3 = 0
@@ -255,7 +257,7 @@ def data_log_model_time(packet_header, end_time):
     if "L1-C1" in packet_header:
         if (_mpacket_counter_L1_C1 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L1C1.txt", "a")
-            model_log_file.write(str(total_model_proc_time_L1_C1) + "\n")
+            model_log_file.write(str(total_model_proc_time_L1_C1/test_packet_length) + "\n")
             model_log_file.close()
             _mpacket_counter_L1_C1 = 1
             total_model_proc_time_L1_C1 = 0
@@ -265,7 +267,7 @@ def data_log_model_time(packet_header, end_time):
     elif "L1-C2" in packet_header:
         if (_mpacket_counter_L1_C2 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L1C2.txt", "a")
-            model_log_file.write(str(total_model_proc_time_L1_C2) + "\n")
+            model_log_file.write(str(total_model_proc_time_L1_C2/test_packet_length) + "\n")
             model_log_file.close()
             _mpacket_counter_L1_C2 = 1
             total_model_proc_time_L1_C2 = 0
@@ -275,7 +277,7 @@ def data_log_model_time(packet_header, end_time):
     elif "L1-C3" in packet_header:
         if (_mpacket_counter_L1_C3 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L1C3.txt", "a")
-            model_log_file.write(str(total_model_proc_time_L1_C3) + "\n")
+            model_log_file.write(str(total_model_proc_time_L1_C3/test_packet_length) + "\n")
             model_log_file.close()
             _mpacket_counter_L1_C3 = 1
             total_model_proc_time_L1_C3 = 0
@@ -285,7 +287,7 @@ def data_log_model_time(packet_header, end_time):
     elif "L2-C1" in packet_header:
         if (_mpacket_counter_L2_C1 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L2C1.txt", "a")
-            model_log_file.write(str(total_model_proc_time_L2_C1) + "\n")
+            model_log_file.write(str(total_model_proc_time_L2_C1/test_packet_length) + "\n")
             model_log_file.close()
             _mpacket_counter_L2_C1 = 1
             total_model_proc_time_L2_C1 = 0
@@ -295,7 +297,7 @@ def data_log_model_time(packet_header, end_time):
     elif "L2-C2" in packet_header:
         if (_mpacket_counter_L2_C2 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L2C2.txt", "a")
-            model_log_file.write(str(total_model_proc_time_L2_C2) + "\n")
+            model_log_file.write(str(total_model_proc_time_L2_C2/test_packet_length) + "\n")
             model_log_file.close()
             _mpacket_counter_L2_C2 = 1
             total_model_proc_time_L2_C2 = 0
@@ -305,7 +307,7 @@ def data_log_model_time(packet_header, end_time):
     elif "L2-C3" in packet_header:
         if (_mpacket_counter_L2_C3 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L2C3.txt", "a")
-            model_log_file.write(str(total_model_proc_time_L2_C3) + "\n")
+            model_log_file.write(str(total_model_proc_time_L2_C3/test_packet_length) + "\n")
             model_log_file.close()
             _mpacket_counter_L2_C3 = 1
             total_model_proc_time_L2_C3 = 0
@@ -332,27 +334,27 @@ def publish_message_log_time(packet_header, end_time):
     if "L1-C1" in packet_header:
         if (publog_mpacket_counter_L1_C1 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L1C1.txt", "a")
-            model_log_file.write(str(total_message_proc_time_L1_C1) + "\n")
+            model_log_file.write(str(total_message_proc_time_L1_C1/test_packet_length) + "\n")
             model_log_file.close()
             publog_mpacket_counter_L1_C1 = 1
             total_message_proc_time_L1_C1 = 0
         else:
             total_message_proc_time_L1_C1 = total_message_proc_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L1_C1 = publog_mpacket_counter_L1_C1 + 1
+            publog_mpacket_counter_L1_C1 = publog_mpacket_counter_L1_C1 + 1
     elif "L1-C2" in packet_header:
         if (publog_mpacket_counter_L1_C2 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L1C2.txt", "a")
-            model_log_file.write(str(total_message_proc_time_L1_C2) + "\n")
+            model_log_file.write(str(total_message_proc_time_L1_C2/test_packet_length) + "\n")
             model_log_file.close()
             publog_mpacket_counter_L1_C2 = 1
             total_message_proc_time_L1_C2 = 0
         else:
             total_message_proc_time_L1_C2 = total_message_proc_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L1_C2 = publog_mpacket_counter_L1_C2 + 1
+            publog_mpacket_counter_L1_C2 = publog_mpacket_counter_L1_C2 + 1
     elif "L1-C3" in packet_header:
         if (publog_mpacket_counter_L1_C3 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L1C3.txt", "a")
-            model_log_file.write(str(total_message_proc_time_L1_C3) + "\n")
+            model_log_file.write(str(total_message_proc_time_L1_C3/test_packet_length) + "\n")
             model_log_file.close()
             publog_mpacket_counter_L1_C3 = 1
             total_message_proc_time_L1_C3 = 0
@@ -362,7 +364,7 @@ def publish_message_log_time(packet_header, end_time):
     elif "L2-C1" in packet_header:
         if (publog_mpacket_counter_L2_C1 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L2C1.txt", "a")
-            model_log_file.write(str(total_message_proc_time_L2_C1) + "\n")
+            model_log_file.write(str(total_message_proc_time_L2_C1/test_packet_length) + "\n")
             model_log_file.close()
             publog_mpacket_counter_L2_C1 = 1
             total_message_proc_time_L2_C1 = 0
@@ -372,7 +374,7 @@ def publish_message_log_time(packet_header, end_time):
     elif "L2-C2" in packet_header:
         if (publog_mpacket_counter_L2_C2 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L2C2.txt", "a")
-            model_log_file.write(str(total_message_proc_time_L2_C2) + "\n")
+            model_log_file.write(str(total_message_proc_time_L2_C2/test_packet_length) + "\n")
             model_log_file.close()
             publog_mpacket_counter_L2_C2 = 1
             total_message_proc_time_L2_C2 = 0
@@ -382,7 +384,7 @@ def publish_message_log_time(packet_header, end_time):
     elif "L2-C3" in packet_header:
         if (publog_mpacket_counter_L2_C3 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L2C3.txt", "a")
-            model_log_file.write(str(total_message_proc_time_L2_C3) + "\n")
+            model_log_file.write(str(total_message_proc_time_L2_C3/test_packet_length) + "\n")
             model_log_file.close()
             publog_mpacket_counter_L2_C3 = 1
             total_message_proc_time_L2_C3 = 0
@@ -390,10 +392,11 @@ def publish_message_log_time(packet_header, end_time):
             total_message_proc_time_L2_C3 = total_message_proc_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
             publog_mpacket_counter_L2_C3 = publog_mpacket_counter_L2_C3 + 1
     else:
-        print("Problem in data_log_model_time")
+        print("Problem in publish_message_log_time")
 
 
 def data_process_to_pub(sub_message):
+    print("Subscribe:",sub_message)
     if "nan" in sub_message:
         if (_client_has_model):
             start_time = long(time.time() * 1000)
@@ -403,45 +406,49 @@ def data_process_to_pub(sub_message):
             message_time, unused = message_time.split("]")
             packet_header = before_time.replace("( ", "").replace(" ", "")
             incoming_data_log_cfg_tx_time(packet_header, message_time, sub_message.__sizeof__())
-            print(packet_header)
             light_data, humidity_data, temperature_data = raw_data_sensors.split(",")
-            light_data = light_data.replace("Light:", "")
-            humidity_data = humidity_data.replace("Humidty:", "").replace(" ", "")
+            light_data = light_data.replace("Light:", "").replace(" ", "")
+            humidity_data = humidity_data.replace("Humidity:", "").replace(" ", "")
             temperature_data = temperature_data.replace("Temperature:", "").replace(" ", "").replace(")))", "")
             # ekleme-ikok
-            Lmodel_in = np.array([[float(temperature_data), float(humidity_data)]])
-            Hmodel_in = np.array([[float(humidity_data), float(light_data)]])
-            Tmodel_in = np.array([[float(light_data), float(temperature_data)]])
             if (light_data == "nan"):
+                print("Processing Light\n")
+                Lmodel_in = np.array([[float(temperature_data), float(humidity_data)]])
                 # ekleme ikok
                 # Burada model işleyecek
                 data_message3 = temperature_data
                 data_message2 = humidity_data
                 L3d = Lmodel_in.reshape((Lmodel_in.shape[0], 1, Lmodel_in.shape[1]))
-                preL = Lmodel.predict(L3d, 1)
-                data_message1 = preL[0][0] # burası neden böyle
-
+                with graphL.as_default():
+                    preL = Lmodel.predict(L3d, 1)
+                data_message1 = preL[0][0]
                 #                data_message1 = "11.11"  # Bu mesaj model sonunda elde edilen değerdir
                 #                data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
                 #                data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_log_model_time(packet_header, start_time)
             elif (humidity_data == "nan"):
+                print("Processing Humidity\n")
+                Hmodel_in = np.array([[float(light_data), float(temperature_data)]])
                 # Burada model işleyecek
                 data_message1 = light_data
                 data_message3 = temperature_data
                 H3d = Hmodel_in.reshape((Hmodel_in.shape[0], 1, Hmodel_in.shape[1]))
-                preH = Hmodel.predict(H3d, 1)
+                with graphH.as_default():
+                    preH = Hmodel.predict(H3d, 1)
                 data_message2 = preH[0][0]
                 #                data_message1 = light_data  # Bu mesaj model sonunda elde edilen değerdir
                 #                data_message2 = "22.22"  # Bu mesaj model sonunda elde edilen değerdir
                 #                data_message3 = temperature_data  # Bu mesaj model sonunda elde edilen değerdir
                 data_log_model_time(packet_header, start_time)
             elif (temperature_data == "nan"):
+                print("Processing Temperature\n")
+                Tmodel_in = np.array([[float(humidity_data), float(light_data)]])
                 # Burada model işleyecek
                 data_message2 = humidity_data
                 data_message1 = light_data
                 T3d = Tmodel_in.reshape((Tmodel_in.shape[0], 1, Tmodel_in.shape[1]))
-                preT = Tmodel.predict(T3d, 1)
+                with graphT.as_default():
+                    preT = Tmodel.predict(T3d, 1)
                 data_message3 = preT[0][0]
                 #                data_message1 = light_data  # Bu mesaj model sonunda elde edilen değerdir
                 #                data_message2 = humidity_data  # Bu mesaj model sonunda elde edilen değerdir
@@ -453,6 +460,7 @@ def data_process_to_pub(sub_message):
             new_message = packet_header + "[" + str(long(time.time() * 1000)) \
                           + "],(" + str(data_message1) + "," + str(data_message2) + "," + str(data_message3) + ")"
             publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
+            print("Publish:", new_message)
         else:
             # These code snippet provides that it handles time by incoming messages and saves them to file.
             # After this operation, it prepares new message.
@@ -463,8 +471,9 @@ def data_process_to_pub(sub_message):
             unused, time_last = sub_message.split("]")
             incoming_data_log_cfg_tx_time(time_first, message_time, sub_message.__sizeof__())
             new_message = time_first + "[" + str(long(time.time() * 1000)) + "]" + time_last
-            publish_message_log_time(packet_name, start_time_for_message_log)
+            publish_message_log_time(time_first, start_time_for_message_log)
             publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
+            print("Publish:", new_message)
     else:
         # These code snippet provides that it handles time by incoming messages and saves them to file.
         # After this operation, it prepares new message.
@@ -475,8 +484,9 @@ def data_process_to_pub(sub_message):
         unused, time_last = sub_message.split("]")
         incoming_data_log_cfg_tx_time(time_first, message_time, sub_message.__sizeof__())
         new_message = time_first + "[" + str(long(time.time() * 1000)) + "]" + time_last
-        publish_message_log_time(packet_name, start_time_for_message_log)
+        publish_message_log_time(time_first, start_time_for_message_log)
         publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
+        print("Publish:", new_message)
 
 
 def callback_on_message(client, userdata, message):
@@ -552,10 +562,11 @@ def client_pub():
             #            data_message2 = "52.87946"  # H Bu mesaj model sonunda elde edilen değerdir
             #            data_message3 = "33333"  # T Bu mesaj model sonunda elde edilen değerdir
             data_log_model_time(location_number + "-" + client_number, model_start_time)
-            publish_message = "(" + location_number + "-" + client_number + "-" + str(i) + ".Paket),(" + str(
-                long(time.time() * 1000)) + "),(" + str(data_message1) + "," + str(data_message2) + "," + str(
+            publish_message = "(" + location_number + "-" + client_number + "-" + str(i) + ".Paket),[" + str(
+                long(time.time() * 1000)) + "],(" + str(data_message1) + "," + str(data_message2) + "," + str(
                 data_message3) + ")"
             publish.single(client_pub_topic, publish_message, 1, False, pub_broker_address, pub_broker_port)
+            print(publish_message)
             # Delay time
             time.sleep(publish_delay_time)
             i = i + 1
@@ -570,12 +581,12 @@ def client_pub():
                 2]  # humd "52.87946" #Bu mesaj csv dosyasından alınacak  yoksa NaN yazılacak IBRAHIM HOCA
             data_message3 = df[i][
                 1]  # temp "NaN"      #Bu mesaj csv dosyasından alınacak  yoksa NaN yazılacak IBRAHIM HOCA
-            publish_message = "( (" + location_number + "-" + client_number + "-" + str(i) + ".Paket), (" + str(long(
-                time.time() * 1000)) + "), ( ( Data: (Light: " + str(data_message1) + ", Humidity: " + str(
-                data_message2) + ", Temperature:" + str(data_message3) + ") ) )"
+            publish_message = "( (" + location_number + "-" + client_number + "-" + str(i) + ".Paket), [" + str(long(
+                time.time() * 1000)) + "], ( ( Data: (Light: " + str(data_message1) + ", Humidity: " + str(
+                data_message2) + ", Temperature:" + str(data_message3) + " ) ) )"
             publish_message_log_time(packet_name, start_time_for_message_log)
             publish.single(client_pub_topic, publish_message, 1, False, pub_broker_address, pub_broker_port)
-
+            print(publish_message)
             time.sleep(publish_delay_time)
             i = i + 1
 
@@ -584,3 +595,4 @@ if (_client_will_sub):
     client_sub_pub()
 else:
     client_pub()
+
