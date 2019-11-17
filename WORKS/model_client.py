@@ -25,19 +25,19 @@ client_ID = "CC0"
 _client_will_sub = False
 _client_has_model = False
 
-test_packet_length = 5
+test_packet_length = 2
 
-sub_broker_address = "192.168.1.103"
+sub_broker_address = "192.168.1.103" # bu clientta etki etmıyor
 sub_broker_port = 1883
 client_sub_topic = "test1"
 
-pub_broker_address = "192.168.1.103"
+pub_broker_address = "192.168.1.41"
 pub_broker_port = 1883
 client_pub_topic = "test1"
-publish_delay_time = 0.2
-publish_size = 20
-client_number = "C3"
-location_number = "L2"
+publish_delay_time = 1.0
+publish_size = 50
+client_number = "C1"
+location_number = "L1"
 packet_name=location_number+ "-"+ client_number
 
 dir_name = "data_log1"
@@ -68,12 +68,12 @@ total_packet_size_L2_C1 = 0
 total_packet_size_L2_C2 = 0
 total_packet_size_L2_C3 = 0
 
-packet_counter_L1_C1 = 1
-packet_counter_L1_C2 = 1
-packet_counter_L1_C3 = 1
-packet_counter_L2_C1 = 1
-packet_counter_L2_C2 = 1
-packet_counter_L2_C3 = 1
+packet_counter_L1_C1 = 0
+packet_counter_L1_C2 = 0
+packet_counter_L1_C3 = 0
+packet_counter_L2_C1 = 0
+packet_counter_L2_C2 = 0
+packet_counter_L2_C3 = 0
 
 ##MODEL TIME LOG DEFINITIONS
 total_model_proc_time_L1_C1 = 0
@@ -83,12 +83,12 @@ total_model_proc_time_L2_C1 = 0
 total_model_proc_time_L2_C2 = 0
 total_model_proc_time_L2_C3 = 0
 
-_mpacket_counter_L1_C1 = 1
-_mpacket_counter_L1_C2 = 1
-_mpacket_counter_L1_C3 = 1
-_mpacket_counter_L2_C1 = 1
-_mpacket_counter_L2_C2 = 1
-_mpacket_counter_L2_C3 = 1
+_mpacket_counter_L1_C1 = 0
+_mpacket_counter_L1_C2 = 0
+_mpacket_counter_L1_C3 = 0
+_mpacket_counter_L2_C1 = 0
+_mpacket_counter_L2_C2 = 0
+_mpacket_counter_L2_C3 = 0
 
 ##PUBLISH MESSAGE PROCCESS LOG DEFINITIONS
 total_message_proc_time_L1_C1 = 0
@@ -98,12 +98,12 @@ total_message_proc_time_L2_C1 = 0
 total_message_proc_time_L2_C2 = 0
 total_message_proc_time_L2_C3 = 0
 
-publog_mpacket_counter_L1_C1 = 1
-publog_mpacket_counter_L1_C2 = 1
-publog_mpacket_counter_L1_C3 = 1
-publog_mpacket_counter_L2_C1 = 1
-publog_mpacket_counter_L2_C2 = 1
-publog_mpacket_counter_L2_C3 = 1
+publog_mpacket_counter_L1_C1 = 0
+publog_mpacket_counter_L1_C2 = 0
+publog_mpacket_counter_L1_C3 = 0
+publog_mpacket_counter_L2_C1 = 0
+publog_mpacket_counter_L2_C2 = 0
+publog_mpacket_counter_L2_C3 = 0
 
 
 ## MODEL YÜKLEME BÖLÜMÜ
@@ -160,13 +160,13 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
             model_size_log_file = open(log_dir + "packet_size_hoop-L1C1.txt", "a")
             model_size_log_file.write(str(total_packet_size_L1_C1/test_packet_length) + "\n")
             model_size_log_file.close()
-            packet_counter_L1_C1 = 1
+            packet_counter_L1_C1 = 0
             total_packet_tx_time_L1_C1 = 0
             total_packet_size_L1_C1 = 0
-        else:
-            total_packet_tx_time_L1_C1 = total_packet_tx_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
-            total_packet_size_L1_C1 = total_packet_size_L1_C1 + packet_size
-            packet_counter_L1_C1 = packet_counter_L1_C1 + 1
+        #else:
+        total_packet_tx_time_L1_C1 = total_packet_tx_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
+        total_packet_size_L1_C1 = total_packet_size_L1_C1 + packet_size
+        packet_counter_L1_C1 = packet_counter_L1_C1 + 1
     elif "L1-C2" in packet_header:
         if (packet_counter_L1_C2 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L1C2.txt", "a")
@@ -175,12 +175,13 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
             model_size_log_file = open(log_dir + "packet_size_hoop-L1C2.txt", "a")
             model_size_log_file.write(str(total_packet_size_L1_C2/test_packet_length) + "\n")
             model_size_log_file.close()
-            packet_counter_L1_C2 = 1
+            packet_counter_L1_C2 = 0
             total_packet_tx_time_L1_C2 = 0
             total_packet_size_L1_C2 = 0
-        else:
-            total_packet_tx_time_L1_C2 = total_packet_tx_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
-            packet_counter_L1_C2 = packet_counter_L1_C2 + 1
+        #else:
+        total_packet_tx_time_L1_C2 = total_packet_tx_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
+        total_packet_size_L1_C2 = total_packet_size_L1_C2 + packet_size
+        packet_counter_L1_C2 = packet_counter_L1_C2 + 1
     elif "L1-C3" in packet_header:
         if (packet_counter_L1_C3 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L1C3.txt", "a")
@@ -189,12 +190,13 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
             model_size_log_file = open(log_dir + "packet_size_hoop-L1C3.txt", "a")
             model_size_log_file.write(str(total_packet_size_L1_C3/test_packet_length) + "\n")
             model_size_log_file.close()
-            packet_counter_L1_C3 = 1
+            packet_counter_L1_C3 = 0
             total_packet_tx_time_L1_C3 = 0
             total_packet_size_L1_C3 = 0
-        else:
-            total_packet_tx_time_L1_C3 = total_packet_tx_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
-            packet_counter_L1_C3 = packet_counter_L1_C3 + 1
+       #else:
+        total_packet_tx_time_L1_C3 = total_packet_tx_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
+        total_packet_size_L1_C3 = total_packet_size_L1_C3 + packet_size
+        packet_counter_L1_C3 = packet_counter_L1_C3 + 1
     elif "L2-C1" in packet_header:
         if (packet_counter_L2_C1 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L2C1.txt", "a")
@@ -203,12 +205,13 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
             model_size_log_file = open(log_dir + "packet_size_hoop-L2C1.txt", "a")
             model_size_log_file.write(str(total_packet_size_L2_C1/test_packet_length) + "\n")
             model_size_log_file.close()
-            packet_counter_L2_C1 = 1
+            packet_counter_L2_C1 = 0
             total_packet_tx_time_L2_C1 = 0
             total_packet_size_L2_C1 = 0
-        else:
-            total_packet_tx_time_L2_C1 = total_packet_tx_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
-            packet_counter_L2_C1 = packet_counter_L2_C1 + 1
+       # else:
+        total_packet_tx_time_L2_C1 = total_packet_tx_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
+        total_packet_size_L2_C1 = total_packet_size_L2_C1 + packet_size
+        packet_counter_L2_C1 = packet_counter_L2_C1 + 1
     elif "L2-C2" in packet_header:
         if (packet_counter_L2_C2 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L2C2.txt", "a")
@@ -217,12 +220,13 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
             model_size_log_file = open(log_dir + "packet_size_hoop-L2C2.txt", "a")
             model_size_log_file.write(str(total_packet_size_L2_C2/test_packet_length) + "\n")
             model_size_log_file.close()
-            packet_counter_L2_C2 = 1
+            packet_counter_L2_C2 = 0
             total_packet_tx_time_L2_C2 = 0
             total_packet_size_L2_C2 = 0
-        else:
-            total_packet_tx_time_L2_C2 = total_packet_tx_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
-            packet_counter_L2_C2 = packet_counter_L2_C2 + 1
+        #else:
+        total_packet_tx_time_L2_C2 = total_packet_tx_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
+        total_packet_size_L2_C2 = total_packet_size_L2_C2 + packet_size
+        packet_counter_L2_C2 = packet_counter_L2_C2 + 1
     elif "L2-C3" in packet_header:
         if (packet_counter_L2_C3 == test_packet_length):
             model_log_file = open(log_dir + "transmission_time_hoop-L2C3.txt", "a")
@@ -231,12 +235,13 @@ def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
             model_size_log_file = open(log_dir + "packet_size_hoop-L2C3.txt", "a")
             model_size_log_file.write(str(total_packet_size_L2_C3/test_packet_length) + "\n")
             model_size_log_file.close()
-            packet_counter_L2_C3 = 1
+            packet_counter_L2_C3 = 0
             total_packet_tx_time_L2_C3 = 0
             total_packet_size_L2_C3 = 0
-        else:
-            total_packet_tx_time_L2_C3 = total_packet_tx_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
-            packet_counter_L2_C3 = packet_counter_L2_C3 + 1
+        #else:
+        total_packet_tx_time_L2_C3 = total_packet_tx_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
+        total_packet_size_L2_C3 = total_packet_size_L2_C3 + packet_size
+        packet_counter_L2_C3 = packet_counter_L2_C3 + 1
     else:
         print("Problem in data_log_cfg_tx_time")
 def data_log_model_time(packet_header, end_time):
@@ -259,61 +264,61 @@ def data_log_model_time(packet_header, end_time):
             model_log_file = open(log_dir + "data_log_model_time-L1C1.txt", "a")
             model_log_file.write(str(total_model_proc_time_L1_C1/test_packet_length) + "\n")
             model_log_file.close()
-            _mpacket_counter_L1_C1 = 1
+            _mpacket_counter_L1_C1 = 0
             total_model_proc_time_L1_C1 = 0
-        else:
-            total_model_proc_time_L1_C1 = total_model_proc_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L1_C1 = _mpacket_counter_L1_C1 + 1
+        #else:
+        total_model_proc_time_L1_C1 = total_model_proc_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
+        _mpacket_counter_L1_C1 = _mpacket_counter_L1_C1 + 1
     elif "L1-C2" in packet_header:
         if (_mpacket_counter_L1_C2 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L1C2.txt", "a")
             model_log_file.write(str(total_model_proc_time_L1_C2/test_packet_length) + "\n")
             model_log_file.close()
-            _mpacket_counter_L1_C2 = 1
+            _mpacket_counter_L1_C2 = 0
             total_model_proc_time_L1_C2 = 0
-        else:
-            total_model_proc_time_L1_C2 = total_model_proc_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L1_C2 = _mpacket_counter_L1_C2 + 1
+        #else:
+        total_model_proc_time_L1_C2 = total_model_proc_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
+        _mpacket_counter_L1_C2 = _mpacket_counter_L1_C2 + 1
     elif "L1-C3" in packet_header:
         if (_mpacket_counter_L1_C3 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L1C3.txt", "a")
             model_log_file.write(str(total_model_proc_time_L1_C3/test_packet_length) + "\n")
             model_log_file.close()
-            _mpacket_counter_L1_C3 = 1
+            _mpacket_counter_L1_C3 = 0
             total_model_proc_time_L1_C3 = 0
-        else:
-            total_model_proc_time_L1_C3 = total_model_proc_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L1_C3 = _mpacket_counter_L1_C3 + 1
+        #else:
+        total_model_proc_time_L1_C3 = total_model_proc_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
+        _mpacket_counter_L1_C3 = _mpacket_counter_L1_C3 + 1
     elif "L2-C1" in packet_header:
         if (_mpacket_counter_L2_C1 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L2C1.txt", "a")
             model_log_file.write(str(total_model_proc_time_L2_C1/test_packet_length) + "\n")
             model_log_file.close()
-            _mpacket_counter_L2_C1 = 1
+            _mpacket_counter_L2_C1 = 0
             total_model_proc_time_L2_C1 = 0
-        else:
-            total_model_proc_time_L2_C1 = total_model_proc_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L2_C1 = _mpacket_counter_L2_C1 + 1
+        #else:
+        total_model_proc_time_L2_C1 = total_model_proc_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
+        _mpacket_counter_L2_C1 = _mpacket_counter_L2_C1 + 1
     elif "L2-C2" in packet_header:
         if (_mpacket_counter_L2_C2 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L2C2.txt", "a")
             model_log_file.write(str(total_model_proc_time_L2_C2/test_packet_length) + "\n")
             model_log_file.close()
-            _mpacket_counter_L2_C2 = 1
+            _mpacket_counter_L2_C2 = 0
             total_model_proc_time_L2_C2 = 0
-        else:
-            total_model_proc_time_L2_C2 = total_model_proc_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L2_C2 = _mpacket_counter_L2_C2 + 1
+        #else:
+        total_model_proc_time_L2_C2 = total_model_proc_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
+        _mpacket_counter_L2_C2 = _mpacket_counter_L2_C2 + 1
     elif "L2-C3" in packet_header:
         if (_mpacket_counter_L2_C3 == test_packet_length):
             model_log_file = open(log_dir + "data_log_model_time-L2C3.txt", "a")
             model_log_file.write(str(total_model_proc_time_L2_C3/test_packet_length) + "\n")
             model_log_file.close()
-            _mpacket_counter_L2_C3 = 1
+            _mpacket_counter_L2_C3 = 0
             total_model_proc_time_L2_C3 = 0
-        else:
-            total_model_proc_time_L2_C3 = total_model_proc_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
-            _mpacket_counter_L2_C3 = _mpacket_counter_L2_C3 + 1
+        #else:
+        total_model_proc_time_L2_C3 = total_model_proc_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
+        _mpacket_counter_L2_C3 = _mpacket_counter_L2_C3 + 1
     else:
         print("Problem in data_log_model_time")
 def publish_message_log_time(packet_header, end_time):
@@ -336,61 +341,61 @@ def publish_message_log_time(packet_header, end_time):
             model_log_file = open(log_dir + "publish_message_log_time-L1C1.txt", "a")
             model_log_file.write(str(total_message_proc_time_L1_C1/test_packet_length) + "\n")
             model_log_file.close()
-            publog_mpacket_counter_L1_C1 = 1
+            publog_mpacket_counter_L1_C1 = 0
             total_message_proc_time_L1_C1 = 0
-        else:
-            total_message_proc_time_L1_C1 = total_message_proc_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
-            publog_mpacket_counter_L1_C1 = publog_mpacket_counter_L1_C1 + 1
+        #else:
+        total_message_proc_time_L1_C1 = total_message_proc_time_L1_C1 + (long(time.time() * 1000) - long(end_time))
+        publog_mpacket_counter_L1_C1 = publog_mpacket_counter_L1_C1 + 1
     elif "L1-C2" in packet_header:
         if (publog_mpacket_counter_L1_C2 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L1C2.txt", "a")
             model_log_file.write(str(total_message_proc_time_L1_C2/test_packet_length) + "\n")
             model_log_file.close()
-            publog_mpacket_counter_L1_C2 = 1
+            publog_mpacket_counter_L1_C2 = 0
             total_message_proc_time_L1_C2 = 0
-        else:
-            total_message_proc_time_L1_C2 = total_message_proc_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
-            publog_mpacket_counter_L1_C2 = publog_mpacket_counter_L1_C2 + 1
+        #else:
+        total_message_proc_time_L1_C2 = total_message_proc_time_L1_C2 + (long(time.time() * 1000) - long(end_time))
+        publog_mpacket_counter_L1_C2 = publog_mpacket_counter_L1_C2 + 1
     elif "L1-C3" in packet_header:
         if (publog_mpacket_counter_L1_C3 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L1C3.txt", "a")
             model_log_file.write(str(total_message_proc_time_L1_C3/test_packet_length) + "\n")
             model_log_file.close()
-            publog_mpacket_counter_L1_C3 = 1
+            publog_mpacket_counter_L1_C3 = 0
             total_message_proc_time_L1_C3 = 0
-        else:
-            total_message_proc_time_L1_C1 = total_message_proc_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
-            publog_mpacket_counter_L1_C3 = publog_mpacket_counter_L1_C3 + 1
+        #else:
+        total_message_proc_time_L1_C1 = total_message_proc_time_L1_C3 + (long(time.time() * 1000) - long(end_time))
+        publog_mpacket_counter_L1_C3 = publog_mpacket_counter_L1_C3 + 1
     elif "L2-C1" in packet_header:
         if (publog_mpacket_counter_L2_C1 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L2C1.txt", "a")
             model_log_file.write(str(total_message_proc_time_L2_C1/test_packet_length) + "\n")
             model_log_file.close()
-            publog_mpacket_counter_L2_C1 = 1
+            publog_mpacket_counter_L2_C1 = 0
             total_message_proc_time_L2_C1 = 0
-        else:
-            total_message_proc_time_L2_C1 = total_message_proc_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
-            publog_mpacket_counter_L2_C1 = publog_mpacket_counter_L2_C1 + 1
+        #else:
+        total_message_proc_time_L2_C1 = total_message_proc_time_L2_C1 + (long(time.time() * 1000) - long(end_time))
+        publog_mpacket_counter_L2_C1 = publog_mpacket_counter_L2_C1 + 1
     elif "L2-C2" in packet_header:
         if (publog_mpacket_counter_L2_C2 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L2C2.txt", "a")
             model_log_file.write(str(total_message_proc_time_L2_C2/test_packet_length) + "\n")
             model_log_file.close()
-            publog_mpacket_counter_L2_C2 = 1
+            publog_mpacket_counter_L2_C2 = 0
             total_message_proc_time_L2_C2 = 0
-        else:
-            total_message_proc_time_L2_C2 = total_message_proc_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
-            publog_mpacket_counter_L2_C2 = publog_mpacket_counter_L2_C2 + 1
+        #else:
+        total_message_proc_time_L2_C2 = total_message_proc_time_L2_C2 + (long(time.time() * 1000) - long(end_time))
+        publog_mpacket_counter_L2_C2 = publog_mpacket_counter_L2_C2 + 1
     elif "L2-C3" in packet_header:
         if (publog_mpacket_counter_L2_C3 == test_packet_length):
             model_log_file = open(log_dir + "publish_message_log_time-L2C3.txt", "a")
             model_log_file.write(str(total_message_proc_time_L2_C3/test_packet_length) + "\n")
             model_log_file.close()
-            publog_mpacket_counter_L2_C3 = 1
+            publog_mpacket_counter_L2_C3 = 0
             total_message_proc_time_L2_C3 = 0
-        else:
-            total_message_proc_time_L2_C3 = total_message_proc_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
-            publog_mpacket_counter_L2_C3 = publog_mpacket_counter_L2_C3 + 1
+        #else:
+        total_message_proc_time_L2_C3 = total_message_proc_time_L2_C3 + (long(time.time() * 1000) - long(end_time))
+        publog_mpacket_counter_L2_C3 = publog_mpacket_counter_L2_C3 + 1
     else:
         print("Problem in publish_message_log_time")
 
@@ -595,4 +600,3 @@ if (_client_will_sub):
     client_sub_pub()
 else:
     client_pub()
-
