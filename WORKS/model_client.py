@@ -14,6 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 from time import sleep
 from keras.models import load_model
 import shutil
+import psutil
 
 # model girdilerini almak için 2D bir dizi oluşturulsu- dolu değerleri bu diziliere alınıp modele verielcek
 
@@ -112,6 +113,13 @@ publog_mpacket_counter_L2_C1 = 0
 publog_mpacket_counter_L2_C2 = 0
 publog_mpacket_counter_L2_C3 = 0
 
+##CPU & MEM VALUES
+total_cpu_usage_percent = 0
+total_memory_usage_percent = 0
+total_cpu_temp_percent = 0
+
+info_packet_counter = 0
+
 
 ## MODEL YÜKLEME BÖLÜMÜ
 if (_client_has_model):
@@ -136,7 +144,36 @@ if (_client_has_model):
 #    x_scaler = MinMaxScaler(feature_range=(0, 1))
 #    y_scaler = MinMaxScaler(feature_range=(0, 1))
 
+def write_cpu_mem_values():
+    global total_cpu_usage_percent
+    global total_memory_usage_percent
+    global total_cpu_temp_percent
 
+    global info_packet_counter
+    if (info_packet_counter == test_packet_length):
+        model_log_file = open(log_dir + "cpu_usage_percentage.txt", "a")
+        model_log_file.write(str(total_cpu_usage_percent / test_packet_length) + "\n")
+        model_log_file.close()
+        model_size_log_file = open(log_dir + "memory_usage_percentage.txt", "a")
+        model_size_log_file.write(str(total_memory_usage_percent / test_packet_length) + "\n")
+        model_size_log_file.close()
+        model_size_log_file = open(log_dir + "cpu_temperature.txt", "a")
+        model_size_log_file.write(str(total_memory_usage_percent / test_packet_length) + "\n")
+        model_size_log_file.close()
+        total_cpu_usage_percent = 0
+        total_memory_usage_percent = 0
+        total_cpu_temp_percent = 0
+        info_packet_counter = 0
+        # else:
+
+    file_read_temp = open("/sys/class/thermal/thermal_zone0/temp", "r")
+    temp = file_read_temp.readline()
+
+    total_cpu_usage_percent = total_cpu_usage_percent + psutil.cpu_percent()
+    total_memory_usage_percent = total_memory_usage_percent + psutil.virtual_memory().percent
+    total_cpu_temp_percent = total_cpu_temp_percent + int(temp) / 1000
+    info_packet_counter = info_packet_counter + 1
+    
 def incoming_data_log_cfg_tx_time(packet_header, end_time, packet_size):
     global packet_counter_L1_C1
     global packet_counter_L1_C2
@@ -508,7 +545,7 @@ def data_process_to_pub(sub_message):
                 data_log_model_time(packet_header, start_time)
             else:
                 print("Problem occured")
-
+            write_cpu_mem_values()
             new_message = packet_header + "[" + str(long(time.time() * 1000)) \
                           + "],(" + str(data_message1) + "," + str(data_message2) + "," + str(data_message3) + ")"
             publish_message_log_time(packet_header, start_time_for_message_log,new_message.__sizeof__())
@@ -523,6 +560,7 @@ def data_process_to_pub(sub_message):
             message_time, unused = message_time.split("]")
             unused, time_last = sub_message.split("]")
             incoming_data_log_cfg_tx_time(time_first, message_time, sub_message.__sizeof__())
+            write_cpu_mem_values()
             new_message = time_first + "[" + str(long(time.time() * 1000)) + "]" + time_last
             publish_message_log_time(time_first, start_time_for_message_log,new_message.__sizeof__())
             publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
@@ -536,6 +574,7 @@ def data_process_to_pub(sub_message):
         message_time, unused = message_time.split("]")
         unused, time_last = sub_message.split("]")
         incoming_data_log_cfg_tx_time(time_first, message_time, sub_message.__sizeof__())
+        write_cpu_mem_values()
         new_message = time_first + "[" + str(long(time.time() * 1000)) + "]" + time_last
         publish_message_log_time(time_first, start_time_for_message_log,new_message.__sizeof__())
         publish.single(client_pub_topic, new_message, 1, False, pub_broker_address, pub_broker_port)
@@ -616,6 +655,7 @@ def client_pub():
             #            data_message2 = "52.87946"  # H Bu mesaj model sonunda elde edilen değerdir
             #            data_message3 = "33333"  # T Bu mesaj model sonunda elde edilen değerdir
             data_log_model_time(location_number + "-" + client_number, model_start_time)
+            write_cpu_mem_values()
             publish_message = "(" + location_number + "-" + client_number + "-" + str(i) + ".Paket),[" + str(
                 long(time.time() * 1000)) + "],(" + str(data_message1) + "," + str(data_message2) + "," + str(
                 data_message3) + ")"
@@ -636,6 +676,7 @@ def client_pub():
                 2]  # humd "52.87946" #Bu mesaj csv dosyasından alınacak  yoksa NaN yazılacak IBRAHIM HOCA
             data_message3 = df[i][
                 1]  # temp "NaN"      #Bu mesaj csv dosyasından alınacak  yoksa NaN yazılacak IBRAHIM HOCA
+            write_cpu_mem_values()
             publish_message = "( (" + location_number + "-" + client_number + "-" + str(i) + ".Paket), [" + str(long(
                 time.time() * 1000)) + "], ( ( Data: (Light: " + str(data_message1) + ", Humidity: " + str(
                 data_message2) + ", Temperature:" + str(data_message3) + " ) ) )"
